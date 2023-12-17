@@ -14,7 +14,10 @@ export const createComment = input =>
   axios.post(`/post/${input.postId}/comments`, input);
 
 export const editComment = input =>
-  axios.post(`/post/${input.postId}/editComments`, input);
+  axios.post(`/post/${input.postId}/editComments`);
+
+export const editPost = formData =>
+  axios.post(`/post/editPost/${formData.get("postId")}`, formData);
 
 export const deleteCommentId = input =>
   axios.delete(`/post/${input.id}/comments`, {

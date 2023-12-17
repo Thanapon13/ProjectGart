@@ -11,6 +11,8 @@ export const updateUserInfo = input => axios.patch("/user/info", input);
 export const updateUserInfoPassword = input =>
   axios.patch("/user/infoPassword", input);
 
+export const getUserDatas = () => axios.get("/user/users");
+
 export const getUserInfoById = userId => axios.get(`/user/${userId}`);
 
 export const deleteUser = userId => axios.delete(`/user/${userId}`);

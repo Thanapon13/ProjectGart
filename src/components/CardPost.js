@@ -3,19 +3,17 @@ import { FaCommentAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export default function CardPost({ el, size, key }) {
-  // console.log("el:", el);
-  // console.log("size:", size);
   return (
     <>
       <div
         key={key}
         className="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
       >
-        <div>
+        <div className="w-full">
           <Link to={`/postDetailPage/${el?.id}`}>
             <img
               className={` ${
-                size ? size : "w-[436px] h-[306px]"
+                size ? size : "w-full h-[306px]"
               } rounded-t-lg object-cover`}
               src={JSON.parse(el?.image)[0]}
               alt=""
@@ -24,10 +22,10 @@ export default function CardPost({ el, size, key }) {
         </div>
         <div className="flex justify-between items-center p-2">
           <div>
-            <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h5 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
               {el?.title}
             </h5>
-            <p className="font-normal text-gray-700 dark:text-gray-400">
+            <p className="font-normal text-gray-700 dark:text-gray-400 overflow-hidden">
               {el?.description}
             </p>
           </div>
@@ -45,7 +43,6 @@ export default function CardPost({ el, size, key }) {
               <button className="text-sm text-gray-600">
                 <FaCommentAlt />
               </button>
-
               <p className="text-sm hover:underline">{el?.Comments?.length}</p>
             </div>
           </div>

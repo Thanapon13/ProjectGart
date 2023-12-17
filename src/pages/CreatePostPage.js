@@ -322,8 +322,6 @@ export default function CreatePostPage() {
           )}
 
           {error && <div className="text-red-600 text-sm">{error.image}</div>}
-
-          {/* file upload image*/}
         </div>
 
         <div className="w-full text-center mb-5">
@@ -346,6 +344,23 @@ export default function CreatePostPage() {
 
         {showModalSuccess && <ModalSuccess urlPath="/" />}
       </div>
+
+      {/* <FromCreatePost
+        header="Create Post"
+        error={error}
+        handleChangeInput={handleChangeInput}
+        input={input}
+        dataTag={dataTag}
+        arrayImage={arrayImage}
+        arrayImageURL={arrayImageURL}
+        deleteImg={deleteImg}
+        inputImg={inputImg}
+        FromCreatePost={FromCreatePost}
+        handleImageChange={handleImageChange}
+        handleSubmitForm={handleSubmitForm}
+        handleCancel={handleCancel}
+        showModalSuccess={showModalSuccess}
+      /> */}
     </div>
   );
 }

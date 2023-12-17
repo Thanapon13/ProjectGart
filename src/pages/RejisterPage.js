@@ -46,7 +46,7 @@ export default function LoginPage() {
         navigate("/loginPage");
       }
     } catch (err) {
-      console.log("err.response?.data.message", err.response);
+      console.log("err.response?.data.message", err.response?.data.message);
       toast.error(err.response?.data.message);
     } finally {
       stopLoading();

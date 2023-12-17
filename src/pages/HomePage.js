@@ -9,7 +9,7 @@ import ButtonClear from "../components/ButtonClear";
 
 export default function HomePage() {
   const { postData } = usePost();
-  console.log("postData:", postData);
+  // console.log("postData:", postData);
   const navigate = useNavigate();
   const { authenticateUser } = useAuth();
   const [selectedTagId, setSelectedTagId] = useState(null);
@@ -17,7 +17,7 @@ export default function HomePage() {
   const [viewMyPosts, setViewMyPosts] = useState(false);
   const [getSearch, setGetSearch] = useState(null);
   const [searchedPosts, setSearchedPosts] = useState([]);
-  console.log("getSearch:", getSearch);
+  // console.log("getSearch:", getSearch);
 
   const toggleSortByLikes = () => {
     setSortByLikes(!sortByLikes);
@@ -50,11 +50,45 @@ export default function HomePage() {
     navigate("/");
   };
 
+  // const filterAndSortPosts = () => {
+  //   const filteredPosts = selectedTagId
+  //     ? postData.filter(
+  //         post =>
+  //           post.Tag.TagName === selectedTagId || post.title.includes(getSearch)
+  //       )
+  //     : viewMyPosts
+  //     ? postData.filter(post => post.User.id === authenticateUser.id)
+  //     : postData;
+
+  //   const searchedPosts = getSearch
+  //     ? filteredPosts.filter(post => {
+  //         const titleLower = post.title.toLowerCase();
+  //         const tagNameLower = post.Tag.TagName.toLowerCase();
+  //         const searchLower = getSearch.toLowerCase();
+  //         return (
+  //           titleLower.includes(searchLower) ||
+  //           tagNameLower.includes(searchLower)
+  //         );
+  //       })
+  //     : filteredPosts;
+
+  //   const sortedPosts = [...searchedPosts].sort((a, b) => {
+  //     if (sortByLikes) {
+  //       return b.Likes.length - a.Likes.length;
+  //     } else {
+  //       return b.id - a.id;
+  //     }
+  //   });
+
+  //   setSearchedPosts(sortedPosts);
+  // };
+
   const filterAndSortPosts = () => {
     const filteredPosts = selectedTagId
       ? postData.filter(
           post =>
-            post.Tag.TagName === selectedTagId || post.title.includes(getSearch)
+            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase() ||
+            post.title.toLowerCase().includes(getSearch.toLowerCase())
         )
       : viewMyPosts
       ? postData.filter(post => post.User.id === authenticateUser.id)

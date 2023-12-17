@@ -2,15 +2,18 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import usePost from "../hooks/usePost";
 import useAuth from "../hooks/useAuth";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   unlike,
   createLike,
   createComment,
   editComment,
-  deleteCommentId
+  deleteCommentId,
+  editPost,
+  deletePost
 } from "../apis/post-api";
 import { requestFollow, deleteFollow } from "../apis/follow-api";
+import { getCreatePostById } from "../apis/post-api";
 import { useEffect } from "react";
 import { BiSolidLike } from "react-icons/bi";
 import { RiDeleteBin5Fill } from "react-icons/ri";
@@ -20,15 +23,26 @@ import ModalConfirmSave from "../components/modal/ModalConfirmSave";
 import PostAction from "../feature/postDetailPage.js/PostAction";
 import CardPost from "../components/CardPost";
 import useTag from "../hooks/useTag";
+import useLoading from "../hooks/useLoading";
+import { toast } from "react-toastify";
+import ModalSuccess from "../components/modal/ModalSuccess";
+import FromEditAndDelete from "../feature/postDetailPage.js/FromEditAndDelete";
 
 export default function PostDetailPage() {
   const { postId } = useParams();
   // console.log("postId:", postId);
 
+  const inputImg = useRef();
+
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
   // console.log("title:", title);
+
+  const [openModalEditPost, setOpenModalEditPost] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const { startLoading, stopLoading } = useLoading();
 
   const { dataTag } = useTag();
   // console.log("dataTag:", dataTag);
@@ -36,12 +50,191 @@ export default function PostDetailPage() {
   const [editedComment, setEditedComment] = useState("");
   // console.log("editedComment:", editedComment);
 
+  const imageTypes = ["image/png", "image/jpeg"];
+
+  const [arrayImage, setArrayImage] = useState([]);
+  // console.log("arrayImage:", arrayImage);
+
+  const [arrayImageURL, setArrayImageURL] = useState([]);
+  // console.log("arrayImageURL;", arrayImageURL);
+
+  const [showModalSuccess, setShowModalSuccess] = useState(false);
+  const [showModalDeleteSuccess, setShowModalDeleteSuccess] = useState(false);
+
+  const [postDataId, setPostDataId] = useState([]);
+  console.log("postDataId:", postDataId);
+
+  const [input, setInput] = useState({
+    title: "",
+    description: "",
+    tagId: "",
+    image: "",
+    id: ""
+  });
+  // console.log("input:", input);
+
+  const handleChangeInput = e => {
+    const { name, value } = e.target;
+    setInput(prevInput => ({
+      ...prevInput,
+      [name]: value
+    }));
+  };
+
+  const handleImageChange = e => {
+    const fileList = e.target.files;
+    const cloneFile = [...arrayImage];
+    for (let i = 0; i < fileList.length; i++) {
+      if (!imageTypes.includes(fileList[i].type)) {
+        toast.warn(`${fileList[i].name} is wrong file type!`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light"
+        });
+      } else if (cloneFile.length >= 1) {
+        toast.warn(`Your images are more than 1!`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light"
+        });
+      } else {
+        cloneFile.push({ image: fileList[i] });
+      }
+    }
+
+    if (!fileList.length) return;
+
+    const newImages = Array.from(fileList);
+
+    setArrayImage(newImages);
+
+    setInput(prevInput => ({
+      ...prevInput,
+      image: newImages
+    }));
+  };
+
+  const deleteImg = idx => {
+    let clone = [...arrayImage];
+    clone.splice(idx, 1);
+    setArrayImage(clone);
+  };
+
+  const handleSubmitForm = async () => {
+    try {
+      startLoading();
+      let formData = new FormData();
+      formData.append("title", input.title);
+      formData.append("description", input.description);
+      formData.append("tagId", input.tagId);
+      formData.append("postId", postId);
+
+      for (let i = 0; i < arrayImage.length; i++) {
+        const file = arrayImage[i];
+
+        if (typeof file === "string") {
+          const response = await fetch(file);
+          const blob = await response.blob();
+          const imageFile = new File([blob], `image_${i}.png`);
+          formData.append("image", imageFile);
+        } else {
+          formData.append("image", file);
+        }
+      }
+
+      await editPost(formData);
+      setInput({
+        title: "",
+        description: "",
+        tagId: ""
+      });
+      setArrayImage([]);
+      stopLoading();
+      await setShowModalSuccess(true);
+    } catch (err) {
+      // console.log("Create Error", err);
+      toast.error(err.response?.data.message);
+    }
+  };
+
+  const handleClickDeletePost = async () => {
+    try {
+      startLoading();
+      await deletePost({
+        id: postId,
+        userId: userId,
+        tagId: tagId
+      });
+      stopLoading();
+
+      await setPostData(prevPostData =>
+        prevPostData.filter(post => post.id !== postId)
+      );
+
+      await setShowModalDeleteSuccess(true);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCancel = () => {
+    setInput({
+      title: "",
+      description: "",
+      tagId: "",
+      image: "",
+      id: ""
+    });
+    setArrayImage([]);
+  };
+
+  useEffect(() => {
+    if (arrayImage.length < 1) return;
+
+    const newImageUrls = arrayImage.map(img => {
+      if (typeof img === "string") {
+        // If it's a URL string, no need to create an object URL
+        return img;
+      } else if (img instanceof File) {
+        // If it's a File object, create an object URL
+        return URL.createObjectURL(img);
+      }
+      return null;
+    });
+
+    setArrayImageURL(newImageUrls);
+
+    // Cleanup previous object URLs to prevent memory leaks
+    return () => {
+      newImageUrls.forEach(url => {
+        if (typeof url !== "string") {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [arrayImage]);
+
   const { postData, setPostData } = usePost();
   // console.log("postData:", postData);
 
-  const { authenticateUser, getUserData, refreshUserData } = useAuth();
-  // console.log("authenticateUser:", authenticateUser);
+  const { authenticateUser, getUserData, refreshUserData, userDatas } =
+    useAuth();
+  console.log("authenticateUser:", authenticateUser);
   // console.log("getUserData:", getUserData);
+  // console.log("userDatas:", userDatas);
+
+  const isCheckEdit = postDataId[0]?.id === authenticateUser?.id;
+  console.log("isCheckEdit:", isCheckEdit);
 
   const [selectedComment, setSelectedComment] = useState(null);
   // console.log("selectedComment:", selectedComment);
@@ -52,9 +245,21 @@ export default function PostDetailPage() {
   const [isFollowing, setIsFollowing] = useState(false);
 
   const [showModalDeleteComment, setShowModalDeleteComment] = useState(false);
+  const [showModalDeletePost, setShowModalDeletePost] = useState(false);
 
   const [selectedPostData, setSelectedPostData] = useState(null);
+
   // console.log("selectedPostData:", selectedPostData);
+
+  const getUserIdByPostId = postId => {
+    const user = userDatas.find(user =>
+      user.Posts.some(post => post.id === +postId)
+    );
+    return user ? user.id : null;
+  };
+
+  const userDataId = getUserIdByPostId(postId);
+  // console.log("userDataId:", userDataId);
 
   useEffect(() => {
     const selectedPost = postData?.find(el => el?.id === +postId);
@@ -66,6 +271,37 @@ export default function PostDetailPage() {
 
   const tagId = selectedPostData?.Tag?.id;
   // console.log("tagId:", tagId);
+
+  useEffect(() => {
+    const fetchPostId = async () => {
+      const res = await getCreatePostById(userId);
+      // console.log("res?.data?.pureCreatePost:", res?.data?.pureCreatePost);
+      setPostDataId(res?.data?.pureCreatePost);
+
+      const selectedUser = res?.data?.pureCreatePost.find(
+        user => user.id === userId
+      );
+      // console.log("selectedUser:", selectedUser);
+
+      const selectedPost = selectedUser?.Posts?.find(post => post.id == postId);
+
+      // console.log("selectedPost:", selectedPost);
+
+      setInput({
+        ...input,
+        title: selectedPost?.title,
+        description: selectedPost?.description,
+        tagId: selectedPost?.Tag?.id
+      });
+
+      const parsedImages = Array.isArray(selectedPost?.image)
+        ? selectedPost?.image
+        : JSON.parse(selectedPost?.image || "[]");
+
+      setArrayImage(parsedImages);
+    };
+    fetchPostId();
+  }, [userId]);
 
   useEffect(() => {
     const fetchUserInfoById = async () => {
@@ -247,11 +483,38 @@ export default function PostDetailPage() {
               />
             </div>
             {authenticateUser ? (
-              <PostAction
-                isUserLiked={isUserLiked}
-                handleClickLikeButton={handleClickLikeButton}
-                selectedPostData={selectedPostData}
-              />
+              <div
+                className={`flex itesm-center ${
+                  isCheckEdit ? "justify-between" : "justify-end"
+                } `}
+              >
+                {isCheckEdit && (
+                  <FromEditAndDelete
+                    setOpen={setOpen}
+                    open={open}
+                    setOpenModalEditPost={setOpenModalEditPost}
+                    openModalEditPost={openModalEditPost}
+                    setShowModalDeletePost={setShowModalDeletePost}
+                    showModalDeletePost={showModalDeletePost}
+                    handleChangeInput={handleChangeInput}
+                    input={input}
+                    dataTag={dataTag}
+                    arrayImage={arrayImage}
+                    arrayImageURL={arrayImageURL}
+                    deleteImg={deleteImg}
+                    inputImg={inputImg}
+                    handleImageChange={handleImageChange}
+                    handleSubmitForm={handleSubmitForm}
+                    handleCancel={handleCancel}
+                  />
+                )}
+
+                <PostAction
+                  isUserLiked={isUserLiked}
+                  handleClickLikeButton={handleClickLikeButton}
+                  selectedPostData={selectedPostData}
+                />
+              </div>
             ) : (
               <PostAction
                 isUserLiked={isUserLiked}
@@ -271,17 +534,28 @@ export default function PostDetailPage() {
                     <div>
                       <h1>Owner</h1>
                     </div>
-                    <Link
-                      to="/profilePage"
-                      state={{ id: selectedPostData?.User.id }}
-                    >
-                      <div>
-                        <Avatar
-                          src={selectedPostData?.User.profileImage}
-                          size="60px"
-                        />
-                      </div>
-                    </Link>
+                    {authenticateUser ? (
+                      <Link
+                        to="/profilePage"
+                        state={{ id: selectedPostData?.User.id }}
+                      >
+                        <div>
+                          <Avatar
+                            src={selectedPostData?.User.profileImage}
+                            size="60px"
+                          />
+                        </div>
+                      </Link>
+                    ) : (
+                      <Link to="/loginPage">
+                        <div>
+                          <Avatar
+                            src={selectedPostData?.User.profileImage}
+                            size="60px"
+                          />
+                        </div>
+                      </Link>
+                    )}
                   </div>
 
                   <div className="flex flex-col justify-center  gap-2">
@@ -392,70 +666,7 @@ export default function PostDetailPage() {
                     ></input>
                   </div>
                 </div>
-              ) : (
-                <div className="w-full">
-                  <div className="w-full p-2">
-                    <p className="text-lg">Sign up to join the comment</p>
-                  </div>
-
-                  <div className="w-full flex justify-start items-center gap-2">
-                    <div>
-                      <button
-                        type="button"
-                        className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                      >
-                        Sign Up With Email
-                      </button>
-                    </div>
-
-                    <div>
-                      <p className="text-[#959595]">or</p>
-                    </div>
-
-                    {/* login apple */}
-                    <div>
-                      <button
-                        type="button"
-                        className="rounded-full text-white bg-[#050708] px-5 py-2.5"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          aria-hidden="true"
-                          focusable="false"
-                          data-prefix="fab"
-                          data-icon="apple"
-                          role="img"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 384 512"
-                        >
-                          <path
-                            fill="currentColor"
-                            d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
-                          ></path>
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* login facebook */}
-                    <div>
-                      <button
-                        type="button"
-                        className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 font-medium rounded-full text-sm px-5 py-2.5 text-center"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="currentColor"
-                          viewBox="0 0 8 19"
-                        >
-                          <path d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              ) : null}
 
               {/* comment User */}
               {selectedPostData?.Comments.sort(
@@ -570,11 +781,16 @@ export default function PostDetailPage() {
               .map((post, idx) => (
                 <div key={idx}>
                   <Link to={`/postDetailPage/${post.id}`}>
-                    <CardPost el={post} key={idx} size="w-[200px] h-[200px]" />
+                    <CardPost el={post} key={idx} size="w-full h-[200px]" />
                   </Link>
                 </div>
               ))}
           </div>
+
+          {showModalSuccess && (
+            <ModalSuccess urlPath={`/postDetailPage/${postId}`} />
+          )}
+          {showModalDeleteSuccess && <ModalSuccess urlPath={"/"} />}
 
           {showModalDeleteComment && (
             <ModalConfirmSave
@@ -583,6 +799,16 @@ export default function PostDetailPage() {
               onSave={handleClickDeleteComment}
               header="ลบคอมเมนต์"
               text='คุณต้องการ "ลบคอมเมนต์" หรือไม่'
+            />
+          )}
+
+          {showModalDeletePost && (
+            <ModalConfirmSave
+              isVisible={showModalDeletePost}
+              onClose={() => setShowModalDeletePost(false)}
+              onSave={handleClickDeletePost}
+              header="Delete post"
+              text='Do you want to "delete post"?'
             />
           )}
         </div>

@@ -53,12 +53,14 @@ export default function LoginPage() {
             <div className="flex ">
               <div className="flex items-center">
                 <Link to="/">
-                  <i className="cursor-pointer text-2xl">
+                  <i className="cursor-pointer -left-4 -top-4 text-2xl">
                     <IoMdArrowRoundBack />
                   </i>
                 </Link>
               </div>
+            </div>
 
+            <div className="flex ">
               <div className="w-full flex items-center justify-center">
                 <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white text-center">
                   Log In

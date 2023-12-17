@@ -20,19 +20,23 @@ export default function ProfilePage() {
     setAuthenticatedUser,
     getUserData,
     getUsers,
-    refreshUserData
+    refreshUserData,
+    setSelectedProfileId,
+    selectedProfileId
   } = useAuth();
   // console.log("authenticateUser:", authenticateUser);
-  console.log("getUserData:", getUserData);
-  // console.log("getUsers:", getUsers);
+  // console.log("getUserData:", getUserData);
+  // console.log("selectedProfileId:", selectedProfileId);
 
   const { startLoading, stopLoading } = useLoading();
 
-  const [selectedProfileId, setSelectedProfileId] = useState(null);
-  // console.log("selectedProfileId:", selectedProfileId);
-
   const [openFollower, setOpenFollower] = useState(false);
   const [openFollowing, setOpenFollowing] = useState(false);
+
+  const selectedUserProfile = getUsers.find(
+    user => user.id === selectedProfileId
+  );
+  // console.log("selectedUserProfile:", selectedUserProfile);
 
   useEffect(() => {
     if (location.state) {
@@ -50,7 +54,7 @@ export default function ProfilePage() {
   // console.log("postData:", postData);
 
   const userPosts = postData.filter(
-    post => post.User.id === authenticateUser.id
+    post => post?.User?.id === authenticateUser.id
   );
   // console.log("userPosts;", userPosts);
 
@@ -61,6 +65,8 @@ export default function ProfilePage() {
   const displayedUserPosts = selectedProfileId
     ? postData.filter(post => post.User.id === selectedProfileId)
     : userPosts;
+
+  // console.log("displayedUser:", displayedUser);
 
   const handleClickSave = async () => {
     try {
@@ -179,68 +185,64 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex">
-          <div className=" w-2/4 flex flex-col items-center ">
+          <div className="w-2/4 flex flex-col items-center">
             <div
-              className={`absolute w-1/4 z-2 ${
-                selectedProfileId ? "bottom-20 h-400px] " : "bottom-4"
-              }  border-2 border-slate-400 bg-white flex flex-col items-center justify-start p-4 `}
+              className={`absolute w-1/4 z-2 -bottom-10 border-2 border-slate-400 bg-white flex flex-col items-center justify-start p-4`}
             >
               <div>
                 {displayedUser ? (
-                  <Avatar src={displayedUser.profileImage} size="140px" />
+                  <Avatar src={displayedUser?.profileImage} size="140px" />
                 ) : (
                   <Avatar size="140px" />
                 )}
               </div>
 
-              {selectedProfileId ? (
-                <div className="flex flex-col justify-center items-center gap-4">
+              <div className="flex flex-col justify-center items-center gap-4">
+                <div>
                   <h1 className="text-xl font-bold">
-                    {" "}
-                    {displayedUser.firstName} {displayedUser.lastName}
+                    {displayedUser?.firstName} {displayedUser?.lastName}
                   </h1>
-
-                  <h1 className="text-xl">Email : {displayedUser.email}</h1>
                 </div>
-              ) : (
-                <div className="flex flex-col justify-center items-center gap-4">
+
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <button onClick={() => setOpenFollower(!openFollower)}>
+                    <p className="text-xl hover:underline">
+                      {selectedProfileId
+                        ? selectedUserProfile?.Accepter.filter(
+                            followData => followData.status === "ALREADYFOLLOW"
+                          ).length
+                        : getUserData?.userFollows?.filter(
+                            followData =>
+                              displayedUser.id === followData.accepterId &&
+                              followData.status === "ALREADYFOLLOW"
+                          ).length}{" "}
+                      followers
+                    </p>
+                  </button>
+
+                  <button onClick={() => setOpenFollowing(!openFollowing)}>
+                    <p className="text-xl hover:underline">
+                      {selectedProfileId
+                        ? selectedUserProfile?.Requester.filter(
+                            followData => followData.status === "ALREADYFOLLOW"
+                          ).length
+                        : getUserData?.userFollows?.filter(
+                            followData =>
+                              displayedUser?.id === followData?.requesterId &&
+                              followData.status === "ALREADYFOLLOW"
+                          ).length}{" "}
+                      following
+                    </p>
+                  </button>
+
                   <div>
-                    <h1 className="text-2xl font-bold">
-                      {" "}
-                      {displayedUser.firstName} {displayedUser.lastName}
-                    </h1>
+                    <h1 className="text-xl">Email: {displayedUser?.email}</h1>
                   </div>
+                </div>
+              </div>
 
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <button onClick={() => setOpenFollower(!openFollower)}>
-                      <p className="text-xl hover:underline">
-                        {
-                          getUserData?.userFollows?.filter(
-                            followData =>
-                              authenticateUser.id === followData.accepterId
-                          ).length
-                        }{" "}
-                        followers
-                      </p>
-                    </button>
-
-                    <button onClick={() => setOpenFollowing(!openFollowing)}>
-                      <p className="text-xl hover:underline">
-                        {
-                          getUserData?.userFollows?.filter(
-                            followData =>
-                              authenticateUser.id === followData.requesterId
-                          ).length
-                        }{" "}
-                        following
-                      </p>
-                    </button>
-
-                    <div>
-                      <h1 className="text-xl">Email : {displayedUser.email}</h1>
-                    </div>
-                  </div>
-
+              <div className="flex flex-col justify-center items-center gap-4 mt-4">
+                {!selectedProfileId && (
                   <div>
                     <Link to="/editProfilePage">
                       <button
@@ -251,18 +253,18 @@ export default function ProfilePage() {
                       </button>
                     </Link>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
           <div className="w-2/4 flex flex-col mt-6 gap-4">
             <div className="flex justify-center items-center font-bold text-4xl">
-              <h1>Your Post {displayedUserPosts.length}</h1>
+              <h1>Your Posts: {displayedUserPosts?.length}</h1>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-2 gap-4 p-4">
-              {displayedUserPosts.map((el, idx) => {
+              {displayedUserPosts?.map((el, idx) => {
                 const postImage = JSON.parse(el.image);
                 return <CardPost key={idx} el={el} postImage={postImage} />;
               })}
@@ -270,42 +272,71 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
       {openFollower && (
         <Modal
-          header="followers"
+          header={`${
+            selectedProfileId
+              ? selectedUserProfile?.Accepter.filter(
+                  followData =>
+                    followData.status === "ALREADYFOLLOW" &&
+                    followData.accepterId === selectedProfileId
+                ).length
+              : getUserData?.userFollows?.filter(
+                  followData =>
+                    displayedUser.id === followData.accepterId &&
+                    followData.status === "ALREADYFOLLOW"
+                ).length
+          } followers`}
           isVisible={openFollower}
           onClose={() => setOpenFollower(false)}
         >
           {getUserData?.userFollows
             ?.filter(
-              followData => authenticateUser.id === followData.accepterId
+              followData =>
+                (selectedProfileId &&
+                  followData?.accepterId === selectedProfileId &&
+                  followData?.status === "ALREADYFOLLOW") ||
+                (!selectedProfileId &&
+                  authenticateUser?.id === followData?.accepterId &&
+                  followData?.status === "ALREADYFOLLOW")
             )
-            .map((followData, index) => (
-              <Link
-                onClick={() => setOpenFollower(false)}
-                to="/profilePage"
-                state={{ id: followData.Requester.id }}
-              >
-                <div
+            .map((followData, index) => {
+              console.log("followData:", followData);
+              return (
+                <Link
+                  onClick={() => setOpenFollower(false)}
+                  to="/profilePage"
+                  state={{ id: followData?.Requester?.id }}
                   key={index}
-                  className="w-[400px] flex items-center gap-4 p-2 border-b-2"
                 >
-                  <div>
-                    <Avatar
-                      src={followData.Requester.profileImage}
-                      size="60px"
-                    />
+                  <div className="w-[400px] flex items-center gap-4 p-2 border-b-2">
+                    <div>
+                      <Avatar
+                        src={followData?.Requester?.profileImage}
+                        size="60px"
+                      />
+                    </div>
+                    <div className="w-full flex items-center justify-between">
+                      <p>{`${followData?.Requester?.firstName || ""} ${
+                        followData?.Requester?.lastName || ""
+                      }`}</p>
+                    </div>
                   </div>
-                  <div className="w-full flex items-center justify-between">
-                    <p>{`${followData.Requester.firstName} ${followData.Requester.lastName}`}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
+
           <div>
             {getUserData?.userFollows &&
-              !getUserData.userFollows.some(
-                followData => authenticateUser.id === followData.accepterId
+              !getUserData?.userFollows.some(
+                followData =>
+                  (selectedProfileId &&
+                    followData?.accepterId === selectedProfileId &&
+                    followData?.status === "ALREADYFOLLOW") ||
+                  (!selectedProfileId &&
+                    authenticateUser?.id === followData?.accepterId &&
+                    followData?.status === "ALREADYFOLLOW")
               ) && (
                 <div className="w-[400px]">
                   <p>ยังไม่มีผู้ติดตาม</p>
@@ -317,22 +348,39 @@ export default function ProfilePage() {
 
       {openFollowing && (
         <Modal
-          header={` ${
-            getUserData?.userFollows?.filter(
-              followData => authenticateUser.id === followData.requesterId
-            ).length
+          header={`${
+            selectedProfileId
+              ? selectedUserProfile?.Requester.filter(
+                  followData => followData.status === "ALREADYFOLLOW"
+                ).length
+              : getUserData?.userFollows?.filter(
+                  followData =>
+                    displayedUser.id === followData.requesterId &&
+                    followData.status === "ALREADYFOLLOW"
+                ).length
           } following`}
           isVisible={openFollowing}
           onClose={() => setOpenFollowing(false)}
         >
           {getUsers.map((user, index) => {
-            if (user.id !== authenticateUser.id) {
-              const isFollowing = getUserData?.userFollows?.some(
+            const isFollowing = getUserData?.userFollows?.some(
+              followData =>
+                authenticateUser.id === followData.requesterId &&
+                followData.accepterId === user.id
+            );
+
+            const shouldDisplayUser =
+              selectedProfileId &&
+              selectedUserProfile?.Requester.some(
                 followData =>
-                  authenticateUser.id === followData.requesterId &&
+                  followData.status === "ALREADYFOLLOW" &&
                   followData.accepterId === user.id
               );
 
+            if (
+              (!selectedProfileId && user.id !== authenticateUser.id) ||
+              shouldDisplayUser
+            ) {
               return (
                 <div
                   key={index}
@@ -350,25 +398,27 @@ export default function ProfilePage() {
                   <div className="w-full flex items-center justify-between">
                     <p>{`${user.firstName} ${user.lastName}`}</p>
 
-                    {isFollowing ? (
-                      <button
-                        type="button"
-                        className="w-[150px] text-white bg-green-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
-                        onClick={() => handleClickReject(user.id)}
-                      >
-                        ติดตามแล้ว
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="w-[150px] text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
-                        onClick={() => {
-                          handleClickFollow(user.id);
-                        }}
-                      >
-                        ติดตาม
-                      </button>
-                    )}
+                    {!selectedProfileId ? (
+                      isFollowing ? (
+                        <button
+                          type="button"
+                          className="w-[150px] text-white bg-green-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
+                          onClick={() => handleClickReject(user.id)}
+                        >
+                          ติดตามแล้ว
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="w-[150px] text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
+                          onClick={() => {
+                            handleClickFollow(user.id);
+                          }}
+                        >
+                          ติดตาม
+                        </button>
+                      )
+                    ) : null}
                   </div>
                 </div>
               );

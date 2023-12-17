@@ -1,7 +1,12 @@
 import { createContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { login, getMe } from "../apis/auth-api";
-import { updateProfile, getUserInfoById, usersData } from "../apis/user-api";
+import {
+  updateProfile,
+  getUserInfoById,
+  usersData,
+  getUserDatas
+} from "../apis/user-api";
 import {
   getAccessToken,
   removeAccessToken,
@@ -22,6 +27,10 @@ export default function AuthContextProvider({ children }) {
   const [getUsers, setGetUsers] = useState([]);
   // console.log("getUsers:", getUsers);
 
+  const [userDatas, setUserDatas] = useState([]);
+
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -40,6 +49,20 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    const fetchUserDatas = async () => {
+      try {
+        const res = await getUserDatas();
+        // console.log("getUserDatas", res.data.pureUsersData);
+        setUserDatas(res.data.pureUsersData);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchUserDatas();
+  }, []);
+
+  useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await usersData();
@@ -55,18 +78,29 @@ export default function AuthContextProvider({ children }) {
   useEffect(() => {
     const fetchUserInfoById = async () => {
       try {
-        if (authenticateUser && authenticateUser.id) {
-          const res = await getUserInfoById(authenticateUser.id);
-          // console.log("getUserInfoById", res.data);
-          setGetUserData(res.data);
+        let userIdToFetch;
+
+        if (selectedProfileId) {
+          userIdToFetch = selectedProfileId;
+        } else if (authenticateUser && authenticateUser.id) {
+          userIdToFetch = authenticateUser.id;
+        } else {
+          console.error(
+            "Neither selectedProfileId nor authenticateUser is available"
+          );
+          return;
         }
+
+        const res = await getUserInfoById(userIdToFetch);
+        // Update getUserData based on the response
+        setGetUserData(res.data);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     };
 
     fetchUserInfoById();
-  }, [authenticateUser]);
+  }, [authenticateUser, selectedProfileId]);
 
   const refreshUserData = async () => {
     try {
@@ -123,7 +157,10 @@ export default function AuthContextProvider({ children }) {
         setGetUserData,
         refreshUserData,
         getUsers,
-        setGetUsers
+        setGetUsers,
+        setSelectedProfileId,
+        selectedProfileId,
+        userDatas
       }}
     >
       {children}
