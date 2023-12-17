@@ -50,7 +50,7 @@ export default function FromTagData({
             ) : null}
             <Link key={idx} to="/" state={{ id: el.TagName }}>
               <img
-                className="rounded-t-lg w-[200px] h-[200px] cursor-pointer"
+                className="rounded-t-lg w-[200px] h-[200px] cursor-pointer object-cover"
                 src={el.image}
                 alt=""
               />
