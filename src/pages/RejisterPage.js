@@ -46,7 +46,7 @@ export default function LoginPage() {
         navigate("/loginPage");
       }
     } catch (err) {
-      // console.log(err, "err");
+      console.log("err.response?.data.message", err.response);
       toast.error(err.response?.data.message);
     } finally {
       stopLoading();
@@ -81,7 +81,7 @@ export default function LoginPage() {
                   value={input.firstName}
                   onChange={handleChangeInput}
                   error={error.firstName}
-                  titleLabel="firstname"
+                  titleLabel="Firstname"
                   icon={<AiOutlineUser />}
                 />
               </div>
@@ -92,7 +92,7 @@ export default function LoginPage() {
                   value={input.lastName}
                   onChange={handleChangeInput}
                   error={error.lastName}
-                  titleLabel="lastname"
+                  titleLabel="Lastname"
                   icon={<AiOutlineUser />}
                 />
               </div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
                   value={input.password}
                   onChange={handleChangeInput}
                   error={error.password}
-                  titleLabel="password"
+                  titleLabel="Password"
                   icon={<AiFillLock />}
                 />
               </div>
@@ -148,7 +148,7 @@ export default function LoginPage() {
                   href="/loginPage"
                   className="text-blue-700 hover:underline dark:text-blue-500"
                 >
-                  Login?
+                  Log In?
                 </a>
               </div>
             </form>

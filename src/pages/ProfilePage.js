@@ -24,7 +24,7 @@ export default function ProfilePage() {
   } = useAuth();
   // console.log("authenticateUser:", authenticateUser);
   console.log("getUserData:", getUserData);
-  console.log("getUsers:", getUsers);
+  // console.log("getUsers:", getUsers);
 
   const { startLoading, stopLoading } = useLoading();
 
@@ -103,8 +103,6 @@ export default function ProfilePage() {
 
   const handleClickReject = async userId => {
     try {
-      // console.log("userIdReject:", userId);
-
       await deleteFollow(userId);
       await refreshUserData();
     } catch (err) {
@@ -335,7 +333,6 @@ export default function ProfilePage() {
                   followData.accepterId === user.id
               );
 
-              console.log("user--", user);
               return (
                 <div
                   key={index}
