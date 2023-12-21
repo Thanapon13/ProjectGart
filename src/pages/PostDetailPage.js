@@ -9,9 +9,9 @@ import {
   createComment,
   editComment,
   deleteCommentId,
-  editPost,
-  deletePost
+  editPost
 } from "../apis/post-api";
+import { deletePost } from "../apis/admin-api";
 import { requestFollow, deleteFollow } from "../apis/follow-api";
 import { getCreatePostById } from "../apis/post-api";
 import { useEffect } from "react";
@@ -62,7 +62,7 @@ export default function PostDetailPage() {
   const [showModalDeleteSuccess, setShowModalDeleteSuccess] = useState(false);
 
   const [postDataId, setPostDataId] = useState([]);
-  console.log("postDataId:", postDataId);
+  // console.log("postDataId:", postDataId);
 
   const [input, setInput] = useState({
     title: "",
@@ -229,12 +229,12 @@ export default function PostDetailPage() {
 
   const { authenticateUser, getUserData, refreshUserData, userDatas } =
     useAuth();
-  console.log("authenticateUser:", authenticateUser);
+  // console.log("authenticateUser:", authenticateUser);
   // console.log("getUserData:", getUserData);
   // console.log("userDatas:", userDatas);
 
   const isCheckEdit = postDataId[0]?.id === authenticateUser?.id;
-  console.log("isCheckEdit:", isCheckEdit);
+  // console.log("isCheckEdit:", isCheckEdit);
 
   const [selectedComment, setSelectedComment] = useState(null);
   // console.log("selectedComment:", selectedComment);
@@ -267,7 +267,7 @@ export default function PostDetailPage() {
   }, [postId, postData]);
 
   const userId = selectedPostData?.User?.id;
-  // console.log("userId:", userId);
+  console.log("userIdssss", userId);
 
   const tagId = selectedPostData?.Tag?.id;
   // console.log("tagId:", tagId);
@@ -411,10 +411,16 @@ export default function PostDetailPage() {
 
   const handleEditComment = async () => {
     try {
+      // console.log("editedComment:", editedComment);
+      // console.log("postId:", postId);
+      // console.log("userId:", userId);
+      // console.log("selectedComment:", selectedComment);
+      // console.log("authenticateUser.id:", authenticateUser.id);
+
       await editComment({
         title: editedComment,
         postId: postId,
-        userId: userId,
+        // userId: authenticateUser.id
         id: selectedComment
       });
 
@@ -781,7 +787,12 @@ export default function PostDetailPage() {
               .map((post, idx) => (
                 <div key={idx}>
                   <Link to={`/postDetailPage/${post.id}`}>
-                    <CardPost el={post} key={idx} size="w-full h-[200px]" />
+                    <CardPost
+                      el={post}
+                      key={idx}
+                      size="w-full h-[200px]"
+                      lineClamp="line-clamp-2"
+                    />
                   </Link>
                 </div>
               ))}

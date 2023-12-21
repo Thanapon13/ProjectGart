@@ -1,25 +1,30 @@
 import { RiDeleteBin5Fill } from "react-icons/ri";
 import { BsFillFilePostFill } from "react-icons/bs";
-import { FaRegUser, FaPlus } from "react-icons/fa";
+import { FaRegUser, FaHistory } from "react-icons/fa";
+import { AiOutlineCaretDown, AiOutlineCaretUp } from "react-icons/ai";
 import usePost from "../hooks/usePost";
 import ModalConfirmSave from "../components/modal/ModalConfirmSave";
 import { useEffect, useRef, useState } from "react";
 import ModalSuccess from "../components/modal/ModalSuccess";
 import useLoading from "../hooks/useLoading";
-import { deletePost } from "../apis/post-api";
-import { deleteUser } from "../apis/user-api";
-import { createTage, deleteTag } from "../apis/tag-api";
+import { deletePost, deleteUser, deleteTag } from "../apis/admin-api";
+import { createTage } from "../apis/tag-api";
+import { restoredPost } from "../apis/admin-api";
 import FromTable from "../components/FromTable";
 import useAuth from "../hooks/useAuth";
 import useTag from "../hooks/useTag";
+import useAdmin from "../hooks/useAdmin";
 import { toast } from "react-toastify";
 import validateCreateTag from "../validators/validate-createTag";
 import Modal from "../components/modal/Modal";
 import FromCreateTag from "../feature/admin/FromCreateTag";
 import FromTagData from "../feature/admin/FromTagData";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminPage() {
   const inputImg = useRef();
+
+  const navigate = useNavigate();
 
   const { postData, setPostData } = usePost();
   // console.log("postData:", postData);
@@ -30,9 +35,16 @@ export default function AdminPage() {
   const { dataTag, setDataTag } = useTag();
   // console.log("dataTag:", dataTag);
 
+  const { restoredData, setRestoredData } = useAdmin();
+  // console.log("restoredData:", restoredData);
+
   const { startLoading, stopLoading } = useLoading();
 
+  const mocDataHistoryName = ["HistoryPost", "HistoryUser", "HistoryTag"];
+  // console.log("mocDataHistoryName:", mocDataHistoryName);
+
   const [selectedMenu, setSelectedMenu] = useState("post");
+  // console.log("selectedMenu:", selectedMenu);
 
   const [showModalDeletePost, setShowModalDeletePost] = useState(false);
   const [showModalDeleteUser, setShowModalDeleteUser] = useState(false);
@@ -40,6 +52,7 @@ export default function AdminPage() {
   const [postDeleteSuccess, setPostDeleteSuccess] = useState(false);
   const [userDeleteSuccess, setUserDeleteSuccess] = useState(false);
   const [showModalDeleteTag, setShowModalDeleteTag] = useState(false);
+  const [showModalRestoredPost, setShowModalRestoredPost] = useState(false);
   const [openTag, setOpenTag] = useState(false);
 
   // Post
@@ -53,6 +66,10 @@ export default function AdminPage() {
 
   // Tag
   const [tagIdDelete, setTagIdDelete] = useState(null);
+
+  // History
+  const [openHistory, setOpenHistory] = useState(false);
+  const [adminHistoryRestoreId, setAdminHistoryRestoreId] = useState([]);
 
   const tagId = tagIdDelete;
 
@@ -202,8 +219,39 @@ export default function AdminPage() {
         prevPostData.filter(post => post.id !== postIdToDelete)
       );
 
+      await setShowModalSuccess(true);
+      await setPostDeleteSuccess(true);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleRestoredPost = async () => {
+    try {
+      startLoading();
+      const restoredPostData = restoredData.find(
+        post => post.id === adminHistoryRestoreId
+      );
+      console.log("restoredPostData:", restoredPostData);
+
+      const value = {
+        image: restoredPostData?.imagePost,
+        title: restoredPostData?.titlePost,
+        description: restoredPostData?.description,
+        tagId: restoredPostData?.tagId,
+        userId: restoredPostData?.userId
+      };
+
+      console.log("value:", value);
+      await restoredPost(adminHistoryRestoreId, postData);
+      stopLoading();
+
+      await setRestoredData(prevPostData =>
+        prevPostData.filter(post => post.id !== adminHistoryRestoreId)
+      );
+
+      setShowModalRestoredPost(false);
       setShowModalSuccess(true);
-      setPostDeleteSuccess(true);
     } catch (err) {
       console.log(err);
     }
@@ -284,6 +332,64 @@ export default function AdminPage() {
               <span className="ms-3">Tag</span>
             </button>
           </li>
+          {/* 
+          <li>
+            <button
+              href="#"
+              className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
+                selectedMenu === "history" ? "bg-gray-300" : null
+              }`}
+              onClick={() => handleMenuClick("history")}
+            >
+              <FaHistory />
+              <span className="ms-3"> Deletion History</span>
+            </button>
+          </li> */}
+
+          <li>
+            <button
+              onClick={() => {
+                handleMenuClick("history");
+                setOpenHistory(prev => !prev);
+              }}
+              className={`w-full flex items-center justify-start p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
+                selectedMenu === "history" ? "bg-gray-300" : null
+              }`}
+            >
+              <div className="w-full flex items-center justify-between">
+                <p className="flex items-center gap-2">
+                  <span>
+                    <FaHistory />
+                  </span>{" "}
+                  Deletion History
+                </p>
+                {!openHistory ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />}
+              </div>
+            </button>
+
+            {openHistory && (
+              <>
+                {mocDataHistoryName?.map((el, idx) => (
+                  <div className="w-full p-2">
+                    <button
+                      key={idx}
+                      onClick={() => handleMenuClick(el)}
+                      href="#"
+                      className="w-full cursor-pointer flex flex-col hover:bg-gray-200 p-2"
+                    >
+                      <p
+                        className={`text-[14px] ${
+                          selectedMenu === el ? "text-[#FF3722]" : "text-black"
+                        } `}
+                      >
+                        {el.replace("History", "")}
+                      </p>
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+          </li>
         </ul>
       </div>
 
@@ -348,6 +454,77 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* History */}
+      {selectedMenu === "history" && (
+        <div className="w-full flex flex-col gap-4 p-4">
+          <div className="flex justify-center items-center font-bold text-2xl">
+            <h1>
+              Displays a list of restored Post history : {restoredData.length}
+            </h1>
+          </div>
+
+          <FromTable
+            titleImage="Image"
+            titleName="Name"
+            titleOwner="Owner"
+            titlePostDate="Post Date"
+            data={restoredData}
+            setShowModal={setShowModalRestoredPost}
+            showModal={showModalRestoredPost}
+            onPostId={setPostIdToDelete}
+            onUserId={setUserIdToDelete}
+            onTagId={setTagIdToDelete}
+            icon={icon}
+            isCheckHistory="isCheckHistory"
+            setAdminHistoryRestoreId={setAdminHistoryRestoreId}
+          />
+
+          <div className="flex justify-center items-center font-bold text-2xl">
+            <h1>
+              Displays a list of restored User history : {postData.length}
+            </h1>
+          </div>
+          <FromTable
+            titleImage="Image"
+            titleName="Name"
+            titleEmail="Email"
+            titleLastLogin="Last logged in"
+            data={getUsers}
+            userId={setUserId}
+            isCheck="isCheck"
+            icon={icon}
+            setShowModal={setShowModalDeleteUser}
+            isCheckHistory="isCheckHistory"
+          />
+        </div>
+      )}
+
+      {selectedMenu === "HistoryPost" && (
+        <div className="w-full flex flex-col gap-4 p-4">
+          <div className="flex justify-center items-center font-bold text-2xl">
+            <h1>
+              Displays a list of restored Post history : {restoredData.length}
+            </h1>
+          </div>
+
+          <FromTable
+            titleImage="Image"
+            titleName="Name"
+            titleOwner="Owner"
+            titlePostDate="Post Date"
+            data={restoredData}
+            setShowModal={setShowModalRestoredPost}
+            showModal={showModalRestoredPost}
+            onPostId={setPostIdToDelete}
+            onUserId={setUserIdToDelete}
+            onTagId={setTagIdToDelete}
+            icon={icon}
+            isCheckHistory="isCheckHistory"
+            setAdminHistoryRestoreId={setAdminHistoryRestoreId}
+          />
+        </div>
+      )}
+
       {showModalDeletePost && (
         <ModalConfirmSave
           isVisible={showModalDeletePost}
@@ -375,6 +552,16 @@ export default function AdminPage() {
           onSave={handleClickDeleteTage}
           header="Delete Tag"
           text='Do you want to "delete" it?'
+        />
+      )}
+
+      {showModalRestoredPost && (
+        <ModalConfirmSave
+          isVisible={showModalRestoredPost}
+          onClose={() => setShowModalRestoredPost(false)}
+          onSave={handleRestoredPost}
+          header="Restored Post"
+          text='Do you want to "Restored Post" it?'
         />
       )}
 

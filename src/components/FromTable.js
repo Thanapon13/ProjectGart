@@ -1,5 +1,6 @@
 import { formatDate } from "../utils/formatDate ";
 import profileImage from "../assets/blank.png";
+import { TbRestore } from "react-icons/tb";
 
 export default function FromTable({
   titleImage,
@@ -16,7 +17,9 @@ export default function FromTable({
   onTagId,
   userId,
   isCheck,
-  icon
+  icon,
+  isCheckHistory,
+  setAdminHistoryRestoreId
 }) {
   //   console.log("data:", data);
   return (
@@ -53,17 +56,19 @@ export default function FromTable({
                 className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
               >
                 <img
-                  className="w-[100px] h-[100px] rounded-lg cursor-pointer"
+                  className="w-[100px] h-[100px] rounded-lg cursor-pointer object-cover"
                   src={
                     el?.image
                       ? JSON.parse(el.image)[0]
-                      : el?.profileImage || profileImage
+                      : el?.profileImage || el?.imagePost || profileImage
                   }
                   alt=""
                 />
               </th>
               <td className="px-6 py-4">
-                {el?.title} {el?.firstName} {el?.lastName}
+                <p className="line-clamp-3">
+                  {el?.title} {el?.firstName} {el?.lastName} {el?.titlePost}
+                </p>
               </td>
               <td className="px-6 py-4">
                 {el?.User?.firstName} {el?.User?.lastName} {el?.email}
@@ -71,8 +76,29 @@ export default function FromTable({
               <td className="px-6 py-4">
                 {formatDate(el?.createdAt || el?.lastLoggedIn)}
               </td>
+
               <td className="px-6 py-4">
-                {isCheck ? (
+                {isCheckHistory ? (
+                  <div className="w-full flex flex-col">
+                    <button
+                      type="button"
+                      className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                      onClick={() => {
+                        setShowModal(!showModal);
+                        setAdminHistoryRestoreId(el.id);
+                      }}
+                    >
+                      Restore
+                    </button>
+
+                    <button
+                      type="button"
+                      className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : isCheck ? (
                   <button
                     onClick={() => {
                       setShowModal(!showModal);

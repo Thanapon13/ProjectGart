@@ -14,5 +14,3 @@ export const updateUserInfoPassword = input =>
 export const getUserDatas = () => axios.get("/user/users");
 
 export const getUserInfoById = userId => axios.get(`/user/${userId}`);
-
-export const deleteUser = userId => axios.delete(`/user/${userId}`);

@@ -7,17 +7,20 @@ import AuthContextProvider from "./contexts/AuthContext";
 import LoadingContextProvider from "./contexts/LoadingContext";
 import PostContextProvider from "./contexts/PostContext";
 import TagContextProvider from "./contexts/TagContext";
+import AdminContextProvider from "./contexts/AdminContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <LoadingContextProvider>
       <AuthContextProvider>
-        <PostContextProvider>
-          <TagContextProvider>
-            <App />
-          </TagContextProvider>
-        </PostContextProvider>
+        <AdminContextProvider>
+          <PostContextProvider>
+            <TagContextProvider>
+              <App />
+            </TagContextProvider>
+          </PostContextProvider>
+        </AdminContextProvider>
       </AuthContextProvider>
     </LoadingContextProvider>
   </React.StrictMode>
