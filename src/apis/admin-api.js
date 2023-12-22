@@ -24,3 +24,6 @@ export const getRestoredData = () => axios.get("/admin/historyPost");
 
 export const restoredPost = (adminHistoryRestoreId, value) =>
   axios.post(`/admin/restoredPost/${adminHistoryRestoreId}`, value);
+
+export const deleteRestoredPost = adminHistoryRestoreId =>
+  axios.delete(`/admin/deleteRestoredPost/${adminHistoryRestoreId}`);
