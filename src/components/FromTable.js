@@ -1,6 +1,6 @@
 import { formatDate } from "../utils/formatDate ";
 import profileImage from "../assets/blank.png";
-import { TbRestore } from "react-icons/tb";
+import { MdHideImage } from "react-icons/md";
 
 export default function FromTable({
   titleImage,
@@ -21,7 +21,8 @@ export default function FromTable({
   isCheckHistory,
   setAdminHistoryRestoreId,
   setShowModalDeleteRestoredPosSuccess,
-  showModalDeleteRestoredPosSuccess
+  showModalDeleteRestoredPosSuccess,
+  status
 }) {
   // console.log("data:", data);
   return (
@@ -41,6 +42,11 @@ export default function FromTable({
             <th scope="col" className="px-6 py-3">
               {titlePostDate} {titleLastLogin}
             </th>
+            {status ? (
+              <th scope="col" className="px-6 py-3">
+                {status}
+              </th>
+            ) : null}
             <th scope="col" className="px-6 py-3 text-center">
               Action
             </th>
@@ -79,6 +85,7 @@ export default function FromTable({
                 <td className="px-6 py-4">
                   {formatDate(el?.createdAt || el?.lastLoggedIn)}
                 </td>
+                {status ? <td className="px-6 py-4">{el?.status}</td> : null}
 
                 <td className="px-6 py-4">
                   {isCheckHistory ? (
@@ -108,27 +115,39 @@ export default function FromTable({
                       </button>
                     </div>
                   ) : isCheck ? (
-                    <button
-                      onClick={() => {
-                        setShowModal(!showModal);
-                        userId(el.id);
-                      }}
-                      className="text-xl hover:text-red-600"
-                    >
-                      {icon}
-                    </button>
+                    <div className="flex justify-center items-center">
+                      <button
+                        onClick={() => {
+                          setShowModal(!showModal);
+                          userId(el.id);
+                        }}
+                        className="text-2xl hover:text-red-600"
+                      >
+                        {icon}
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setShowModal(!showModal);
-                        onPostId(el?.id);
-                        onUserId(el?.User?.id);
-                        onTagId(el?.Tag?.id);
-                      }}
-                      className="text-xl hover:text-red-600"
-                    >
-                      {icon}
-                    </button>
+                    <div className="flex justify-center items-center gap-4">
+                      <button
+                        onClick={() => {
+                          setShowModal(!showModal);
+                          onPostId(el?.id);
+                          onUserId(el?.User?.id);
+                          onTagId(el?.Tag?.id);
+                        }}
+                        className="text-2xl hover:text-red-600"
+                      >
+                        {icon}
+                      </button>
+
+                      <button
+                        className={`text-2xl hover:text-red-600 ${
+                          el.status === "HIDEPOST" ? "text-red-600" : null
+                        }`}
+                      >
+                        <MdHideImage />
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>

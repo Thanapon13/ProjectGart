@@ -3,6 +3,9 @@ import { FaCommentAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export default function CardPost({ el, size }) {
+  if (el.status === "HIDEPOST") {
+    return null;
+  }
   return (
     <>
       <div className="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 ">

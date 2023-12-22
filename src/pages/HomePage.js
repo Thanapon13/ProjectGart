@@ -13,7 +13,7 @@ import { CgPushChevronRight } from "react-icons/cg";
 
 export default function HomePage() {
   const { postData } = usePost();
-  // console.log("postData:", postData);
+  console.log("postData:", postData);
   const navigate = useNavigate();
   const { authenticateUser } = useAuth();
   const [selectedTagId, setSelectedTagId] = useState(null);

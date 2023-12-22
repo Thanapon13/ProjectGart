@@ -421,6 +421,7 @@ export default function AdminPage() {
             titleName="Name"
             titleOwner="Owner"
             titlePostDate="Post Date"
+            status="status"
             data={postData}
             setShowModal={setShowModalDeletePost}
             showModal={showModalDeletePost}
