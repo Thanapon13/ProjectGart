@@ -6,13 +6,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { MdLogout } from "react-icons/md";
 import useAuth from "../hooks/useAuth";
 import { useRef, useState } from "react";
+import { useEffect } from "react";
+import { updateStatusShowUser } from "../apis/admin-api";
 
 export default function DropdownProfile() {
-  const { logout, authenticateUser } = useAuth();
-  // console.log("authenticateUser:", authenticateUser);
+  const { logout, authenticateUser, setAuthenticatedUser } = useAuth();
+  console.log("authenticateUser:", authenticateUser);
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  // console.log("countdown:", countdown);
 
   const menuRef = useRef();
   const imgRef = useRef();
@@ -23,11 +27,57 @@ export default function DropdownProfile() {
     }
   });
 
+  useEffect(() => {
+    let timer;
+
+    const fetchData = async () => {
+      if (authenticateUser && authenticateUser.status === "BANUSER") {
+        timer = setInterval(async () => {
+          setCountdown(prevCountdown => {
+            const newCountdown = prevCountdown > 0 ? prevCountdown - 1 : 0; // Countdown to 0 and stop
+
+            // Use the current value of countdown directly
+            updateStatusShowUser(authenticateUser.id, newCountdown);
+
+            if (newCountdown === 0) {
+              clearInterval(timer); // Clear the interval when countdown is 0
+            }
+
+            return newCountdown;
+          });
+        }, 1000);
+      }
+    };
+
+    fetchData();
+
+    return () => clearInterval(timer);
+  }, [authenticateUser]);
+
   return (
     <div className="flex w-4/12 justify-end items-center gap-4">
       {/* BOX-left */}
       <div className="flex justify-center items-center gap-4">
-        {authenticateUser && authenticateUser.isAdmin === true ? null : (
+        {authenticateUser && authenticateUser.status === "BANUSER" ? (
+          countdown > 0 ? (
+            <button
+              type="button"
+              className="text-white bg-blue-700 opacity-50 cursor-not-allowed rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:opacity-50"
+              disabled
+            >
+              Create Post ({countdown}s)
+            </button>
+          ) : (
+            <Link to="createPostPage">
+              <button
+                type="button"
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-0 rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Create Post
+              </button>
+            </Link>
+          )
+        ) : (
           <Link to="createPostPage">
             <button
               type="button"

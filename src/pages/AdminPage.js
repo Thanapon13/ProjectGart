@@ -12,7 +12,9 @@ import {
   deleteUser,
   deleteTag,
   deleteRestoredPost,
-  restoredPost
+  restoredPost,
+  updateStatusPostHidePost,
+  updateStatusPostShowPost
 } from "../apis/admin-api";
 import { createTage } from "../apis/tag-api";
 import FromTable from "../components/FromTable";
@@ -32,7 +34,7 @@ export default function AdminPage() {
   const navigate = useNavigate();
 
   const { postData, setPostData } = usePost();
-  console.log("postData:", postData);
+  // console.log("postData:", postData);
 
   const { getUsers, setGetUsers } = useAuth();
   // console.log("getUsers:", getUsers);
@@ -41,7 +43,7 @@ export default function AdminPage() {
   // console.log("dataTag:", dataTag);
 
   const { restoredData, setRestoredData } = useAdmin();
-  console.log("restoredData:", restoredData);
+  // console.log("restoredData:", restoredData);
 
   const { startLoading, stopLoading } = useLoading();
 
@@ -248,8 +250,8 @@ export default function AdminPage() {
       const restoredPostData = restoredData.find(
         post => post.id === adminHistoryRestoreId
       );
-      console.log("restoredPostData:", restoredPostData);
-      console.log("adminHistoryRestoreId:", adminHistoryRestoreId);
+      // console.log("restoredPostData:", restoredPostData);
+      // console.log("adminHistoryRestoreId:", adminHistoryRestoreId);
 
       await restoredPost(adminHistoryRestoreId, postData);
       stopLoading();
@@ -320,6 +322,37 @@ export default function AdminPage() {
     userDeleteSuccess,
     showModalSuccess
   ]);
+
+  const handleClickLikeButton = async postId => {
+    const isCheckStatus = postData.find(
+      el => el.id === postId && el.status === "SHOWPOST"
+    );
+    // console.log("isCheckStatus:", isCheckStatus);
+
+    if (isCheckStatus) {
+      console.log("postId:", postId);
+      await updateStatusPostHidePost(postId);
+
+      setPostData(prevPostData => {
+        return prevPostData.map(post => {
+          if (post.id === postId) {
+            post.status = "HIDEPOST";
+          }
+          return post;
+        });
+      });
+    } else {
+      await updateStatusPostShowPost(postId);
+      setPostData(prevPostData => {
+        return prevPostData.map(post => {
+          if (post.id === postId) {
+            post.status = "SHOWPOST";
+          }
+          return post;
+        });
+      });
+    }
+  };
 
   return (
     <div className="w-full flex">
@@ -429,6 +462,7 @@ export default function AdminPage() {
             onUserId={setUserIdToDelete}
             onTagId={setTagIdToDelete}
             icon={icon}
+            handleClickLikeButton={handleClickLikeButton}
           />
         </div>
       )}

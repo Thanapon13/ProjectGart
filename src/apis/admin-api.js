@@ -27,3 +27,18 @@ export const restoredPost = (adminHistoryRestoreId, value) =>
 
 export const deleteRestoredPost = adminHistoryRestoreId =>
   axios.delete(`/admin/deleteRestoredPost/${adminHistoryRestoreId}`);
+
+export const updateStatusPostHidePost = postId =>
+  axios.post(`/admin/post/updateStatusPostHidePost/${postId}/`);
+
+export const updateStatusPostShowPost = postId =>
+  axios.post(`/admin/post/updateStatusPostShowPost/${postId}/`);
+
+export const updateStatusBanUser = userId =>
+  axios.post(`/admin"/user/updateStatusBanUser/${userId}`);
+
+export const updateStatusShowUser = (userId, countdown) => {
+  console.log("countdownAPI:", countdown);
+  console.log("userIdAPI:", userId);
+  return axios.post(`/admin/user/updateStatusShowUser/${userId}/${countdown}`);
+};

@@ -1,6 +1,7 @@
 import { formatDate } from "../utils/formatDate ";
 import profileImage from "../assets/blank.png";
 import { MdHideImage } from "react-icons/md";
+import { useEffect, useState } from "react";
 
 export default function FromTable({
   titleImage,
@@ -22,9 +23,24 @@ export default function FromTable({
   setAdminHistoryRestoreId,
   setShowModalDeleteRestoredPosSuccess,
   showModalDeleteRestoredPosSuccess,
-  status
+  status,
+  handleClickLikeButton
 }) {
   // console.log("data:", data);
+
+  const [sortedData, setSortedData] = useState([]);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const sorted = data.slice().sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.lastLoggedIn);
+        const dateB = new Date(b.createdAt || b.lastLoggedIn);
+        return dateB - dateA;
+      });
+
+      setSortedData(sorted);
+    }
+  }, [data]);
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg mb-10">
       <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -54,8 +70,8 @@ export default function FromTable({
         </thead>
 
         <tbody>
-          {data.length > 0 ? (
-            data?.map((el, idx) => (
+          {sortedData.length > 0 ? (
+            sortedData?.map((el, idx) => (
               <tr
                 key={idx}
                 className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -74,8 +90,8 @@ export default function FromTable({
                     alt=""
                   />
                 </th>
-                <td className="px-6 py-4">
-                  <p className="line-clamp-3">
+                <td className="px-6 py-4 w-[200px]">
+                  <p className="line-clamp-2">
                     {el?.title} {el?.firstName} {el?.lastName} {el?.titlePost}
                   </p>
                 </td>
@@ -141,6 +157,7 @@ export default function FromTable({
                       </button>
 
                       <button
+                        onClick={() => handleClickLikeButton(el?.id)}
                         className={`text-2xl hover:text-red-600 ${
                           el.status === "HIDEPOST" ? "text-red-600" : null
                         }`}

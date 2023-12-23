@@ -782,6 +782,7 @@ export default function PostDetailPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
             {postData
+              .filter(post => post.status !== "HIDEPOST")
               .sort((a, b) => b.Likes.length - a.Likes.length)
               .slice(0, 5)
               .map((post, idx) => (
