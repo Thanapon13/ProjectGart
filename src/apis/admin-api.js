@@ -34,11 +34,10 @@ export const updateStatusPostHidePost = postId =>
 export const updateStatusPostShowPost = postId =>
   axios.post(`/admin/post/updateStatusPostShowPost/${postId}/`);
 
-export const updateStatusBanUser = userId =>
-  axios.post(`/admin"/user/updateStatusBanUser/${userId}`);
+export const updateStatusBanUser = (userId, adminUserId) => {
+  axios.post(`/admin/user/updateStatusBanUser/${userId}`, adminUserId);
+};
 
 export const updateStatusShowUser = (userId, countdown) => {
-  console.log("countdownAPI:", countdown);
-  console.log("userIdAPI:", userId);
   return axios.post(`/admin/user/updateStatusShowUser/${userId}/${countdown}`);
 };

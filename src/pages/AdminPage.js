@@ -14,7 +14,8 @@ import {
   deleteRestoredPost,
   restoredPost,
   updateStatusPostHidePost,
-  updateStatusPostShowPost
+  updateStatusPostShowPost,
+  updateStatusBanUser
 } from "../apis/admin-api";
 import { createTage } from "../apis/tag-api";
 import FromTable from "../components/FromTable";
@@ -36,7 +37,10 @@ export default function AdminPage() {
   const { postData, setPostData } = usePost();
   // console.log("postData:", postData);
 
-  const { getUsers, setGetUsers } = useAuth();
+  const { getUsers, setGetUsers, authenticateUser, setAuthenticatedUser } =
+    useAuth();
+  const adminUserId = authenticateUser?.id;
+  console.log("authenticateUser:", authenticateUser);
   // console.log("getUsers:", getUsers);
 
   const { dataTag, setDataTag } = useTag();
@@ -54,6 +58,7 @@ export default function AdminPage() {
   // console.log("selectedMenu:", selectedMenu);
 
   const [showModalDeletePost, setShowModalDeletePost] = useState(false);
+  const [showModalBanUser, setShowModalBanUser] = useState(false);
   const [showModalDeleteUser, setShowModalDeleteUser] = useState(false);
   const [showModalSuccess, setShowModalSuccess] = useState(false);
   const [postDeleteSuccess, setPostDeleteSuccess] = useState(false);
@@ -228,10 +233,6 @@ export default function AdminPage() {
       });
       stopLoading();
 
-      // await setPostData(prevPostData =>
-      //   prevPostData.filter(post => post.id !== postIdToDelete)
-      // );
-
       setPostData(prevPostData =>
         prevPostData.filter(post => post.id !== postIdToDelete)
       );
@@ -306,7 +307,16 @@ export default function AdminPage() {
       console.log(err);
     }
   };
-
+  const handleClickBanUser = async () => {
+    try {
+      await updateStatusBanUser(userId, adminUserId);
+      // Update state in AuthContextProvider
+      const updatedUser = { ...authenticateUser, status: "BANUSER" };
+      setAuthenticatedUser(updatedUser);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   useEffect(() => {
     if (postDeleteSuccess || userDeleteSuccess || showModalSuccess) {
       const timer = setTimeout(() => {
@@ -484,6 +494,8 @@ export default function AdminPage() {
             isCheck="isCheck"
             icon={icon}
             setShowModal={setShowModalDeleteUser}
+            setShowModalBanUser={setShowModalBanUser}
+            showModalBanUser={showModalBanUser}
           />
         </div>
       )}
@@ -572,6 +584,16 @@ export default function AdminPage() {
           onSave={handleClickDeletePost}
           header="Delete post"
           text='Do you want to "delete post"?'
+        />
+      )}
+
+      {showModalBanUser && (
+        <ModalConfirmSave
+          isVisible={showModalBanUser}
+          onClose={() => setShowModalBanUser(false)}
+          onSave={handleClickBanUser}
+          header="Ban User"
+          text='Do you want to "Ban User"?'
         />
       )}
 

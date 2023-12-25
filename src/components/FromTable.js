@@ -2,6 +2,7 @@ import { formatDate } from "../utils/formatDate ";
 import profileImage from "../assets/blank.png";
 import { MdHideImage } from "react-icons/md";
 import { useEffect, useState } from "react";
+import { FaBan } from "react-icons/fa";
 
 export default function FromTable({
   titleImage,
@@ -24,7 +25,9 @@ export default function FromTable({
   setShowModalDeleteRestoredPosSuccess,
   showModalDeleteRestoredPosSuccess,
   status,
-  handleClickLikeButton
+  handleClickLikeButton,
+  setShowModalBanUser,
+  showModalBanUser
 }) {
   // console.log("data:", data);
 
@@ -131,7 +134,7 @@ export default function FromTable({
                       </button>
                     </div>
                   ) : isCheck ? (
-                    <div className="flex justify-center items-center">
+                    <div className="flex justify-center items-center gap-4">
                       <button
                         onClick={() => {
                           setShowModal(!showModal);
@@ -140,6 +143,16 @@ export default function FromTable({
                         className="text-2xl hover:text-red-600"
                       >
                         {icon}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowModalBanUser(!showModalBanUser);
+                          userId(el.id);
+                        }}
+                        className="text-2xl hover:text-red-600"
+                      >
+                        <FaBan />
                       </button>
                     </div>
                   ) : (

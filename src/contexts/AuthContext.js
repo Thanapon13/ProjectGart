@@ -19,7 +19,7 @@ export default function AuthContextProvider({ children }) {
   const [authenticateUser, setAuthenticatedUser] = useState(
     getAccessToken() ? true : null
   );
-  // console.log("authenticateUser", authenticateUser.id);
+  // console.log("authenticateUser", authenticateUser);
 
   const [getUserData, setGetUserData] = useState([]);
   // console.log("getUserData:", getUserData);
@@ -37,7 +37,6 @@ export default function AuthContextProvider({ children }) {
     const fetchAuthUser = async () => {
       try {
         const res = await getMe();
-        // console.log("getMe", res);
         setAuthenticatedUser(res.data.user);
       } catch (err) {
         removeAccessToken();

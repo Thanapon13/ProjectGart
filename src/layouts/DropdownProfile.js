@@ -8,15 +8,16 @@ import useAuth from "../hooks/useAuth";
 import { useRef, useState } from "react";
 import { useEffect } from "react";
 import { updateStatusShowUser } from "../apis/admin-api";
+import { formatTime } from "../utils/formatTime ";
 
 export default function DropdownProfile() {
   const { logout, authenticateUser, setAuthenticatedUser } = useAuth();
   console.log("authenticateUser:", authenticateUser);
+
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
-  const [countdown, setCountdown] = useState(5);
-  // console.log("countdown:", countdown);
+  const [countdown, setCountdown] = useState(0);
 
   const menuRef = useRef();
   const imgRef = useRef();
@@ -31,28 +32,52 @@ export default function DropdownProfile() {
     let timer;
 
     const fetchData = async () => {
-      if (authenticateUser && authenticateUser.status === "BANUSER") {
-        timer = setInterval(async () => {
-          setCountdown(prevCountdown => {
-            const newCountdown = prevCountdown > 0 ? prevCountdown - 1 : 0; // Countdown to 0 and stop
+      if (
+        authenticateUser &&
+        authenticateUser?.status === "BANUSER" &&
+        authenticateUser?.startBanDate &&
+        authenticateUser?.endBanDate
+      ) {
+        const startTime = new Date(authenticateUser?.startBanDate).getTime();
+        const endTime = new Date(authenticateUser?.endBanDate).getTime();
 
-            // Use the current value of countdown directly
-            updateStatusShowUser(authenticateUser.id, newCountdown);
+        // console.log("startTime:", startTime);
+        // console.log("endTime:", endTime);
 
-            if (newCountdown === 0) {
-              clearInterval(timer); // Clear the interval when countdown is 0
-            }
+        if (!isNaN(startTime) && !isNaN(endTime) && endTime > startTime) {
+          setCountdown(prevCountdown =>
+            Math.floor((endTime - startTime) / 1000)
+          );
 
-            return newCountdown;
-          });
-        }, 1000);
+          timer = setInterval(() => {
+            setCountdown(prevCountdown => {
+              const newCountdown = prevCountdown > 0 ? prevCountdown - 1 : 0;
+
+              if (newCountdown === 0) {
+                clearInterval(timer);
+              }
+
+              if (newCountdown === 0) {
+                clearInterval(timer);
+                updateStatusShowUser(
+                  authenticateUser?.id,
+                  formatTime(newCountdown)
+                );
+              }
+
+              return newCountdown;
+            });
+          }, 1000);
+        }
       }
     };
 
     fetchData();
 
-    return () => clearInterval(timer);
-  }, [authenticateUser]);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [authenticateUser, setAuthenticatedUser]);
 
   return (
     <div className="flex w-4/12 justify-end items-center gap-4">
@@ -62,10 +87,10 @@ export default function DropdownProfile() {
           countdown > 0 ? (
             <button
               type="button"
-              className="text-white bg-blue-700 opacity-50 cursor-not-allowed rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:opacity-50"
+              className="text-white bg-red-700 opacity-50 cursor-not-allowed rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:opacity-50"
               disabled
             >
-              Create Post ({countdown}s)
+              Banned for: {formatTime(countdown)} Remaining
             </button>
           ) : (
             <Link to="createPostPage">
@@ -96,7 +121,7 @@ export default function DropdownProfile() {
             ref={imgRef}
             type="button"
             className="w-10 h-10 rounded-full cursor-pointer"
-            src={authenticateUser.profileImage || PictureUser}
+            src={authenticateUser?.profileImage || PictureUser}
             alt="User dropdown"
             onClick={() => setOpen(!open)}
           />
@@ -118,12 +143,12 @@ export default function DropdownProfile() {
           >
             <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
               <span className="block text-sm text-gray-900 dark:text-white">
-                {authenticateUser.firstName} {authenticateUser.lastName}
+                {authenticateUser?.firstName} {authenticateUser?.lastName}
               </span>
               <div className="font-medium truncate">
                 {" "}
                 <span className="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
-                  {authenticateUser.email}
+                  {authenticateUser?.email}
                 </span>
               </div>
             </div>
@@ -131,7 +156,7 @@ export default function DropdownProfile() {
               className="py-2 text-sm text-gray-700 dark:text-gray-200"
               aria-labelledby="avatarButton"
             >
-              {authenticateUser && authenticateUser.isAdmin === true ? null : (
+              {authenticateUser && authenticateUser?.isAdmin === true ? null : (
                 <li>
                   <Link
                     to="/profilePage"
@@ -145,7 +170,7 @@ export default function DropdownProfile() {
                 </li>
               )}
 
-              {authenticateUser && authenticateUser.isAdmin === true ? (
+              {authenticateUser && authenticateUser?.isAdmin === true ? (
                 <li>
                   <Link
                     to="/adminPage"

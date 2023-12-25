@@ -11,7 +11,7 @@ export default function AdminContextProvider({ children }) {
     const fetchRestoredData = async () => {
       const res = await getRestoredData();
       //   console.log("res:", res.data.historyPost);
-      setRestoredData(res.data.historyPost);
+      setRestoredData(res?.data?.historyPost);
     };
     fetchRestoredData();
   }, []);

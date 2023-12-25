@@ -168,8 +168,8 @@ export default function HomePage() {
           </div>
 
           <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 p-4 z-0">
-            {searchedPosts.length > 0 ? (
-              searchedPosts.map((el, idx) => <CardPost key={idx} el={el} />)
+            {searchedPosts?.length > 0 ? (
+              searchedPosts?.map((el, idx) => <CardPost key={idx} el={el} />)
             ) : (
               <p className="flex items-start justify-center h-screen text-center text-gray-600 dark:text-gray-300 mt-4">
                 No results found for "{`${getSearch || "Post"}`}".
