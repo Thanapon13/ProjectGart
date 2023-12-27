@@ -1,33 +1,43 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import usePost from "../hooks/usePost";
 import CardPost from "../components/CardPost";
 import { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import { BiSolidLike } from "react-icons/bi";
-import { FaUser } from "react-icons/fa";
+import { AiOutlineCaretDown, AiOutlineCaretUp } from "react-icons/ai";
+import { FaUser, FaHashtag } from "react-icons/fa";
+
 import ButtonClear from "../components/ButtonClear";
-import { HiChevronLeft } from "react-icons/hi";
-import { HiChevronRight } from "react-icons/hi";
-import { CgPushChevronLeft } from "react-icons/cg";
-import { CgPushChevronRight } from "react-icons/cg";
+import useTag from "../hooks/useTag";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const { postData } = usePost();
   // console.log("postData:", postData);
-  const navigate = useNavigate();
+  const { dataTag } = useTag();
+  // console.log("dataTag:", dataTag);
   const { authenticateUser } = useAuth();
   const [selectedTagId, setSelectedTagId] = useState(null);
+  // console.log("selectedTagId", selectedTagId);
   const [sortByLikes, setSortByLikes] = useState(false);
   const [viewMyPosts, setViewMyPosts] = useState(false);
+  // console.log("viewMyPosts:", viewMyPosts);
   const [getSearch, setGetSearch] = useState(null);
-  const [searchedPosts, setSearchedPosts] = useState([]);
   // console.log("getSearch:", getSearch);
+  const [searchedPosts, setSearchedPosts] = useState([]);
+  // console.log("searchedPosts:", searchedPosts);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(12);
+  const [openTag, setOpenTag] = useState(false);
+  const [sortByLikesForTag, setSortByLikesForTag] = useState(false);
 
   const toggleSortByLikes = () => {
     setSortByLikes(!sortByLikes);
     setViewMyPosts(false);
+    setSortByLikesForTag(false);
     setSelectedTagId(null);
     setSearchedPosts([]);
+    setCurrentPage(1);
   };
 
   const location = useLocation();
@@ -36,21 +46,31 @@ export default function HomePage() {
     if (location.state) {
       if (typeof location.state === "string") {
         setGetSearch(location.state);
-        setSelectedTagId(location.state);
+        setSelectedTagId(null);
       } else if (typeof location.state === "object" && location.state.id) {
-        setSelectedTagId(location.state.id);
         setGetSearch(location.state.id);
+        setSelectedTagId(null);
       } else {
         setSelectedTagId(null);
+        setGetSearch("");
       }
     }
-  }, [location.state]);
+    filterAndSortPosts();
+  }, [
+    location.state,
+    sortByLikes,
+    viewMyPosts,
+    getSearch,
+    postData,
+    currentPage
+  ]);
 
   const clearSearch = () => {
     setSelectedTagId(null);
     setGetSearch(null);
     setViewMyPosts(null);
     setSearchedPosts([]);
+    setCurrentPage(1);
     navigate("/");
   };
 
@@ -58,8 +78,9 @@ export default function HomePage() {
     const filteredPosts = selectedTagId
       ? postData.filter(
           post =>
-            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase() ||
-            post.title.toLowerCase().includes(getSearch.toLowerCase())
+            post.Tag &&
+            post.Tag.TagName &&
+            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase()
         )
       : viewMyPosts
       ? postData.filter(post => post.User.id === authenticateUser.id)
@@ -77,20 +98,92 @@ export default function HomePage() {
         })
       : filteredPosts;
 
-    const sortedPosts = [...searchedPosts].sort((a, b) => {
-      if (sortByLikes) {
+    const postsWithSelectedTag = selectedTagId
+      ? searchedPosts.filter(
+          post =>
+            post.Tag &&
+            post.Tag.TagName &&
+            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase()
+        )
+      : searchedPosts;
+
+    const sortedPosts = [...postsWithSelectedTag].sort((a, b) => {
+      if (sortByLikes || sortByLikesForTag) {
         return b.Likes.length - a.Likes.length;
       } else {
         return b.id - a.id;
       }
     });
 
-    setSearchedPosts(sortedPosts);
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+
+    if (indexOfFirstPost >= sortedPosts.length) {
+      setCurrentPage(Math.ceil(sortedPosts.length / postsPerPage));
+      return;
+    }
+
+    const currentPosts = sortedPosts.slice(
+      indexOfFirstPost,
+      Math.min(indexOfLastPost, sortedPosts.length)
+    );
+
+    setSearchedPosts(currentPosts);
+
+    const stateToPersist = {
+      selectedTagId,
+      sortByLikes,
+      sortByLikesForTag,
+      viewMyPosts,
+      getSearch,
+      currentPage
+    };
+
+    localStorage.setItem("homePageState", JSON.stringify(stateToPersist));
   };
 
   useEffect(() => {
     filterAndSortPosts();
-  }, [selectedTagId, sortByLikes, viewMyPosts, getSearch, postData]);
+  }, [
+    selectedTagId,
+    sortByLikes,
+    viewMyPosts,
+    getSearch,
+    postData,
+    currentPage
+  ]);
+
+  useEffect(() => {
+    const persistedState = localStorage.getItem("homePageState");
+
+    if (persistedState) {
+      const parsedState = JSON.parse(persistedState);
+      setSelectedTagId(parsedState.selectedTagId);
+      setSortByLikes(parsedState.sortByLikes);
+      setSortByLikesForTag(parsedState.sortByLikesForTag);
+      setViewMyPosts(parsedState.viewMyPosts);
+      setGetSearch(parsedState.getSearch);
+      setCurrentPage(parsedState.currentPage);
+    }
+  }, []);
+
+  const paginate = pageNumber => setCurrentPage(pageNumber);
+
+  const totalPages = Math.ceil(postData.length / postsPerPage);
+
+  // console.log(
+  //   "totalPages:",
+  //   `${postData.length} /  ${postsPerPage} = ${postData.length / postsPerPage} `
+  // );
+
+  const handleMenuTagClick = menu => {
+    setSelectedTagId(prevId => (prevId === menu ? null : menu));
+    setViewMyPosts(false);
+    setSortByLikes(false);
+    setSearchedPosts([]);
+    setCurrentPage(1);
+    filterAndSortPosts();
+  };
 
   const clearAll = () => {
     setSelectedTagId(null);
@@ -98,9 +191,9 @@ export default function HomePage() {
     setViewMyPosts(null);
     setSortByLikes(false);
     setSearchedPosts([]);
+    setCurrentPage(1);
     navigate("/");
   };
-
   return (
     <div className="relative">
       <div className="w-full flex">
@@ -137,6 +230,44 @@ export default function HomePage() {
                 <span className="ms-3">Likes</span>
               </button>
             </li>
+
+            <li>
+              <button
+                onClick={() => {
+                  setOpenTag(() => !openTag);
+                }}
+                className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group `}
+              >
+                <div className="w-full flex items-center justify-between">
+                  <p className="flex items-center gap-2">
+                    <span>
+                      <FaHashtag />
+                    </span>{" "}
+                    Tag
+                  </p>
+                  {!openTag ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />}
+                </div>
+              </button>
+
+              {openTag && (
+                <>
+                  {dataTag?.map((el, idx) => (
+                    <div className="w-full p-2">
+                      <button
+                        key={idx}
+                        href="#"
+                        onClick={() => handleMenuTagClick(el.TagName)}
+                        className={`w-full cursor-pointer rounded-lg flex flex-col hover:bg-gray-200 p-2 ${
+                          selectedTagId === el.TagName ? "bg-gray-300" : null
+                        } `}
+                      >
+                        <p className={`text-[14px] $`}>{el.TagName}</p>
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </li>
           </ul>
         </div>
 
@@ -159,6 +290,11 @@ export default function HomePage() {
                 <ButtonClear onClick={clearSearch} getSearch="Posts" />
               )}
             </div>
+            <div className="p-2">
+              {selectedTagId && (
+                <ButtonClear onClick={clearSearch} getSearch={selectedTagId} />
+              )}
+            </div>
 
             {viewMyPosts || getSearch || sortByLikes ? (
               <div className="p-2">
@@ -167,67 +303,76 @@ export default function HomePage() {
             ) : null}
           </div>
 
-          <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 p-4 z-0">
-            {searchedPosts?.length > 0 ? (
-              searchedPosts?.map((el, idx) => <CardPost key={idx} el={el} />)
-            ) : (
-              <p className="flex items-start justify-center h-screen text-center text-gray-600 dark:text-gray-300 mt-4">
-                No results found for "{`${getSearch || "Post"}`}".
-              </p>
-            )}
+          <div className="w-full flex flex-col justify-center items-center">
+            <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 p-4 z-0">
+              {searchedPosts?.length > 0 ? (
+                searchedPosts?.map((el, idx) => <CardPost key={idx} el={el} />)
+              ) : (
+                <p className="flex items-start justify-center h-screen text-center text-gray-600 dark:text-gray-300 mt-4">
+                  No results found for "{`${getSearch || "Post"}`}".
+                </p>
+              )}
+            </div>
+            {/* Pagination */}
+            <div className="w-full flex justify-center gap-2 h-12 pr-2 items-center text-text-black-table text-xs font-semibold  bg-white rounded-b-lg border-b-[1px] border-border-gray-table">
+              <nav>
+                <ul className="inline-flex -space-x-px text-base h-10">
+                  <li>
+                    <a
+                      href="#"
+                      className={`flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          paginate(currentPage - 1);
+                        }
+                      }}
+                    >
+                      Previous
+                    </a>
+                  </li>
+
+                  {Array.from({ length: totalPages }).map((_, index) => (
+                    <li key={index}>
+                      <a
+                        href="#"
+                        className={`flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border ${
+                          currentPage === index + 1
+                            ? "bg-blue-200 text-blue-600"
+                            : "border-gray-300 "
+                        } hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
+                        onClick={() => paginate(index + 1)}
+                      >
+                        {index + 1}
+                      </a>
+                    </li>
+                  ))}
+
+                  <li>
+                    <a
+                      href="#"
+                      className={`flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border rounded-e-lg border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          paginate(currentPage + 1);
+                        }
+                      }}
+                    >
+                      Next
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-center gap-2 h-12 pr-2 items-center text-text-black-table text-xs font-semibold bg-white rounded-b-lg border-b-[1px] border-border-gray-table">
-        <div className="flex items-center">
-          <div>Rows per page:</div>
-          <select
-            id="limit"
-            name="limit"
-            className="h-8 ml-2 bg-gray-50  border border-gray-300  text-gray-500 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            // onChange={handlePaginationSearch}
-          >
-            <option value="5">5</option>
-            <option value="10" selected="selected">
-              10
-            </option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-
-        <div className="mx-5">
-          {/* {search.limit * (search.page - 1) + 1}-
-                  {search.limit * (search.page - 1) + assetList.length} of{" "}
-                  {search.total} */}
-        </div>
-
-        <button
-          className="flex justify-center items-center hover:bg-gray-200 rounded-full  text-icon-dark-gray focus:text-black w-6 h-6 px-1 my-2"
-          // onClick={handleFirstPage}
-        >
-          <CgPushChevronLeft className="text-lg" />
-        </button>
-        <button
-          className="flex justify-center items-center hover:bg-gray-200 rounded-full  text-icon-dark-gray focus:text-black w-6 h-6 px-1 py-1"
-          // onClick={handlePageDecrease}
-        >
-          <HiChevronLeft className="text-lg" />
-        </button>
-        <button
-          className="flex justify-center items-center hover:bg-gray-200 rounded-full text-icon-dark-gray focus:text-black w-6 h-6 px-1 py-1"
-          // onClick={handlePageIncrease}
-        >
-          <HiChevronRight className="text-lg" />
-        </button>
-        <button
-          className="flex justify-center items-center hover:bg-gray-200 rounded-full text-icon-dark-gray focus:text-black w-6 h-6 px-1 py-1"
-          // onClick={handleLastPage}
-        >
-          <CgPushChevronRight className="text-lg font-bold" />
-        </button>
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ import Modal from "../components/modal/Modal";
 import FromCreateTag from "../feature/admin/FromCreateTag";
 import FromTagData from "../feature/admin/FromTagData";
 import { useNavigate } from "react-router-dom";
+import axios from "../config/axios";
 
 export default function AdminPage() {
   const inputImg = useRef();
@@ -37,11 +38,15 @@ export default function AdminPage() {
   const { postData, setPostData } = usePost();
   // console.log("postData:", postData);
 
-  const { getUsers, setGetUsers, authenticateUser, setAuthenticatedUser } =
-    useAuth();
+  const { getUsers, setGetUsers, authenticateUser } = useAuth();
   const adminUserId = authenticateUser?.id;
-  console.log("authenticateUser:", authenticateUser);
-  // console.log("getUsers:", getUsers);
+  // console.log("authenticateUser:", authenticateUser);
+  console.log("getUsers:", getUsers);
+
+  const filteredUsers = getUsers.filter(
+    user => user.id !== authenticateUser.id
+  );
+  // console.log("filteredUsers:", filteredUsers);
 
   const { dataTag, setDataTag } = useTag();
   // console.log("dataTag:", dataTag);
@@ -253,11 +258,10 @@ export default function AdminPage() {
       );
       // console.log("restoredPostData:", restoredPostData);
       // console.log("adminHistoryRestoreId:", adminHistoryRestoreId);
+      setPostData(prevPostData => [...prevPostData, restoredPostData]);
 
       await restoredPost(adminHistoryRestoreId, postData);
       stopLoading();
-
-      setPostData(prevPostData => [...prevPostData, restoredPostData]);
 
       setRestoredData(prevPostData =>
         prevPostData.filter(post => post.id !== adminHistoryRestoreId)
@@ -307,16 +311,24 @@ export default function AdminPage() {
       console.log(err);
     }
   };
+
   const handleClickBanUser = async () => {
     try {
-      await updateStatusBanUser(userId, adminUserId);
-      // Update state in AuthContextProvider
-      const updatedUser = { ...authenticateUser, status: "BANUSER" };
-      setAuthenticatedUser(updatedUser);
+      const response = await axios.post(
+        `/admin/user/updateStatusBanUser/${userId}`,
+        adminUserId
+      );
+
+      console.log("response:", response.data.userData);
+
+      const updatedUsers = response.data.userData;
+
+      setGetUsers(updatedUsers);
     } catch (err) {
       console.log(err);
     }
   };
+
   useEffect(() => {
     if (postDeleteSuccess || userDeleteSuccess || showModalSuccess) {
       const timer = setTimeout(() => {
@@ -424,30 +436,8 @@ export default function AdminPage() {
                   </span>{" "}
                   Deletion History
                 </p>
-                {!openHistory ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />}
               </div>
             </button>
-
-            {openHistory && (
-              <>
-                {mocDataHistoryName?.map((el, idx) => (
-                  <div className="w-full p-2">
-                    <button
-                      key={idx}
-                      onClick={() => handleMenuClick(el)}
-                      href="#"
-                      className={`w-full cursor-pointer rounded-lg flex flex-col hover:bg-gray-200 p-2 ${
-                        selectedMenu === el ? "bg-gray-300" : null
-                      }`}
-                    >
-                      <p className={`text-[14px] $`}>
-                        {el.replace("History", "")}
-                      </p>
-                    </button>
-                  </div>
-                ))}
-              </>
-            )}
           </li>
         </ul>
       </div>
@@ -481,7 +471,7 @@ export default function AdminPage() {
       {selectedMenu === "user" && (
         <div className="w-full flex flex-col gap-4 p-4">
           <div className="flex justify-center items-center font-bold text-2xl">
-            <h1>List User : {getUsers.length}</h1>
+            <h1>List User : {filteredUsers.length}</h1>
           </div>
 
           <FromTable
@@ -489,7 +479,7 @@ export default function AdminPage() {
             titleName="Name"
             titleEmail="Email"
             titleLastLogin="Last logged in"
-            data={getUsers}
+            data={filteredUsers}
             userId={setUserId}
             isCheck="isCheck"
             icon={icon}
@@ -549,33 +539,6 @@ export default function AdminPage() {
           />
         </div>
       )}
-
-      {/* HistoryPost */}
-      {/* {selectedMenu === "HistoryPost" && (
-        <div className="w-full flex flex-col gap-4 p-4">
-          <div className="flex justify-center items-center font-bold text-2xl">
-            <h1>
-              Displays a list of restored Post history : {restoredData.length}
-            </h1>
-          </div>
-
-          <FromTable
-            titleImage="Image"
-            titleName="Name"
-            titleOwner="Owner"
-            titlePostDate="Post Date"
-            data={restoredData}
-            setShowModal={setShowModalRestoredPost}
-            showModal={showModalRestoredPost}
-            onPostId={setPostIdToDelete}
-            onUserId={setUserIdToDelete}
-            onTagId={setTagIdToDelete}
-            icon={icon}
-            isCheckHistory="isCheckHistory"
-            setAdminHistoryRestoreId={setAdminHistoryRestoreId}
-          />
-        </div>
-      )} */}
 
       {showModalDeletePost && (
         <ModalConfirmSave

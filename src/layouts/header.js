@@ -28,11 +28,11 @@ export default function Header() {
                 alt="Flowbite Logo"
               />
             </Link>
-            <Link to="/tagPage">
+            {/* <Link to="/tagPage">
               <p className="self-center text-lg font-semibold whitespace-nowrap dark:text-white hover:underline">
                 Tag
               </p>
-            </Link>
+            </Link> */}
           </div>
 
           <form

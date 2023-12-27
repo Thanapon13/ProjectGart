@@ -22,8 +22,9 @@ export const deleteUser = userId => axios.delete(`/admin/user/${userId}`);
 
 export const getRestoredData = () => axios.get("/admin/historyPost");
 
-export const restoredPost = (adminHistoryRestoreId, value) =>
+export const restoredPost = (adminHistoryRestoreId, value) => {
   axios.post(`/admin/restoredPost/${adminHistoryRestoreId}`, value);
+};
 
 export const deleteRestoredPost = adminHistoryRestoreId =>
   axios.delete(`/admin/deleteRestoredPost/${adminHistoryRestoreId}`);
@@ -34,8 +35,16 @@ export const updateStatusPostHidePost = postId =>
 export const updateStatusPostShowPost = postId =>
   axios.post(`/admin/post/updateStatusPostShowPost/${postId}/`);
 
-export const updateStatusBanUser = (userId, adminUserId) => {
-  axios.post(`/admin/user/updateStatusBanUser/${userId}`, adminUserId);
+// export const updateStatusBanUser = (userId, adminUserId) => {
+//   axios.post(`/admin/user/updateStatusBanUser/${userId}`, adminUserId);
+// };
+
+export const updateStatusBanUser = async (userId, adminUserId) => {
+  const response = await axios.post(
+    `/admin/user/updateStatusBanUser/${userId}`,
+    adminUserId
+  );
+  return response.data.user;
 };
 
 export const updateStatusShowUser = (userId, countdown) => {

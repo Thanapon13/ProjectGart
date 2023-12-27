@@ -5,6 +5,8 @@ export default function RedirectAdmin({ children }) {
   const { authenticateUser } = useAuth();
   if (authenticateUser && authenticateUser.isAdmin === false) {
     return <Navigate to={"/"} />;
+  } else if (!authenticateUser) {
+    return <Navigate to={"/"} />;
   }
   return children;
 }

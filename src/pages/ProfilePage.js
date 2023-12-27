@@ -258,7 +258,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="w-2/4 flex flex-col mt-6 gap-4">
+          <div
+            className={`w-2/4 flex flex-col mt-6 gap-4  ${
+              displayedUserPosts?.length === 0 ? "h-[400px] " : null
+            }`}
+          >
             <div className="flex justify-center items-center font-bold text-4xl">
               <h1>Your Posts: {displayedUserPosts?.length}</h1>
             </div>

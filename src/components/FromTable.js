@@ -3,6 +3,7 @@ import profileImage from "../assets/blank.png";
 import { MdHideImage } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { FaBan } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function FromTable({
   titleImage,
@@ -83,15 +84,31 @@ export default function FromTable({
                   scope="row"
                   className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                 >
-                  <img
-                    className="w-[100px] h-[100px] rounded-lg cursor-pointer object-cover"
-                    src={
-                      el?.image
-                        ? JSON.parse(el.image)[0]
-                        : el?.profileImage || el?.imagePost || profileImage
-                    }
-                    alt=""
-                  />
+                  {isCheck ? (
+                    <Link to="/profilePage" state={{ id: el?.id }}>
+                      <img
+                        className="w-[100px] h-[100px] rounded-lg cursor-pointer object-cover"
+                        src={
+                          el?.image
+                            ? JSON.parse(el.image)[0]
+                            : el?.profileImage || el?.imagePost || profileImage
+                        }
+                        alt=""
+                      />
+                    </Link>
+                  ) : (
+                    <Link to={`/postDetailPage/${el.id}`}>
+                      <img
+                        className="w-[100px] h-[100px] rounded-lg cursor-pointer object-cover"
+                        src={
+                          el?.image
+                            ? JSON.parse(el.image)[0]
+                            : el?.profileImage || el?.imagePost || profileImage
+                        }
+                        alt=""
+                      />
+                    </Link>
+                  )}
                 </th>
                 <td className="px-6 py-4 w-[200px]">
                   <p className="line-clamp-2">
@@ -150,7 +167,9 @@ export default function FromTable({
                           setShowModalBanUser(!showModalBanUser);
                           userId(el.id);
                         }}
-                        className="text-2xl hover:text-red-600"
+                        className={`text-2xl hover:text-red-600 ${
+                          el.status === "BANUSER" ? "text-red-600" : null
+                        } `}
                       >
                         <FaBan />
                       </button>

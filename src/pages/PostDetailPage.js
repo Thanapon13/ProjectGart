@@ -267,7 +267,7 @@ export default function PostDetailPage() {
   }, [postId, postData]);
 
   const userId = selectedPostData?.User?.id;
-  console.log("userIdssss", userId);
+  // console.log("userIdssss", userId);
 
   const tagId = selectedPostData?.Tag?.id;
   // console.log("tagId:", tagId);

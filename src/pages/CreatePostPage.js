@@ -23,7 +23,7 @@ export default function CreatePostPage() {
   const imageTypes = ["image/png", "image/jpeg"];
 
   const [arrayImage, setArrayImage] = useState([]);
-  console.log("arrayImage:", arrayImage);
+  // console.log("arrayImage:", arrayImage);
 
   const [arrayImageURL, setArrayImageURL] = useState([]);
 
@@ -35,10 +35,10 @@ export default function CreatePostPage() {
     tagId: "",
     image: ""
   });
-  console.log("inputData:", input);
+  // console.log("inputData:", input);
 
   const [error, setError] = useState({});
-  console.log("error:", error);
+  // console.log("error:", error);
 
   const handleChangeInput = e => {
     const { name, value } = e.target;
@@ -58,6 +58,17 @@ export default function CreatePostPage() {
     for (let i = 0; i < fileList.length; i++) {
       if (!imageTypes.includes(fileList[i].type)) {
         toast.warn(`${fileList[i].name} is wrong file type!`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light"
+        });
+      } else if (fileList[i].size > 2000000) {
+        toast.warn(`${fileList[i].name} has more than 2mb!`, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -196,6 +207,7 @@ export default function CreatePostPage() {
                 } text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                 onChange={handleChangeInput}
                 value={input.title}
+                placeholder="Enter no more than 255 characters"
               />
               {error && (
                 <div className="text-red-600 text-sm">{error.title}</div>
@@ -218,6 +230,7 @@ export default function CreatePostPage() {
                 } text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                 onChange={handleChangeInput}
                 value={input.description}
+                placeholder="Enter no more than 255 characters"
               />
               {error && (
                 <div className="text-red-600 text-sm">{error.description}</div>
