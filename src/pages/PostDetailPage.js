@@ -477,9 +477,9 @@ export default function PostDetailPage() {
         <div className="w-full flex flex-col justify-start items-center  mt-6">
           {/* row-1-TOP */}
           <div className="w-4/5 flex flex-col gap-5">
-            <div>
+            <div className="flex items-center justify-center">
               <img
-                className="w-full h-[400px] rounded-lg cursor-pointer object-cover"
+                className="h-[450px] cursor-pointer object-cover"
                 src={
                   selectedPostData?.image
                     ? JSON.parse(selectedPostData.image)[0]
@@ -546,9 +546,16 @@ export default function PostDetailPage() {
                         state={{ id: selectedPostData?.User.id }}
                       >
                         <div>
-                          <Avatar
+                          {/* <Avatar
                             src={selectedPostData?.User.profileImage}
                             size="60px"
+                          /> */}
+
+                          <img
+                            type="button"
+                            className="w-[60px] h-[60px] rounded-full cursor-pointer"
+                            src={selectedPostData?.User.profileImage}
+                            alt="User dropdown"
                           />
                         </div>
                       </Link>
@@ -623,7 +630,7 @@ export default function PostDetailPage() {
                 </div>
 
                 <div>
-                  <h1 className="font-bold text-sm">Description</h1>
+                  <h1 className="font-bold text-lg">Description</h1>
                   <p>{selectedPostData?.description}</p>
                 </div>
               </div>
@@ -650,8 +657,15 @@ export default function PostDetailPage() {
               {/* check login */}
               {authenticateUser ? (
                 <div className="w-full flex items-center gap-4">
-                  <div>
-                    <Avatar src={authenticateUser.profileImage} size="60px" />
+                  <div className="w-[100px]">
+                    {/* <Avatar src={authenticateUser.profileImage} size="60px" /> */}
+
+                    <img
+                      type="button"
+                      className="w-[60px] h-[60px] rounded-full cursor-pointer"
+                      src={authenticateUser.profileImage}
+                      alt="User dropdown"
+                    />
                   </div>
 
                   <div className="w-full flex flex-col">
@@ -688,8 +702,14 @@ export default function PostDetailPage() {
                       isCurrentUserComment ? "border-2 rounded-lg p-2" : ""
                     }`}
                   >
-                    <div>
-                      <Avatar size="60px" src={el?.User?.profileImage} />
+                    <div className="w-[100px]">
+                      {/* <Avatar size="60px" src={el?.User?.profileImage} /> */}
+                      <img
+                        type="button"
+                        className="w-[60px] h-[60px] rounded-full cursor-pointer"
+                        src={el?.User?.profileImage}
+                        alt="User dropdown"
+                      />
                     </div>
 
                     <div className="w-full flex flex-col">
@@ -775,7 +795,7 @@ export default function PostDetailPage() {
         </div>
 
         {/* BOX-2-right */}
-        <div className="w-2/4 flex flex-col gap-6 items-center p-2">
+        <div className="w-1/4 flex flex-col gap-6 items-center p-2">
           <div>
             <h1 className="text-2xl font-bold">Recommend Picture</h1>
           </div>
@@ -788,11 +808,9 @@ export default function PostDetailPage() {
               .map((post, idx) => (
                 <div key={idx}>
                   <Link to={`/postDetailPage/${post.id}`}>
-                    <CardPost
-                      el={post}
-                      key={idx}
-                      size="w-full h-[200px]"
-                      lineClamp="line-clamp-2"
+                    <img
+                      src={JSON.parse(post?.image)[0]}
+                      className="w-[120px]"
                     />
                   </Link>
                 </div>

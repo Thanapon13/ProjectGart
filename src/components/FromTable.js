@@ -31,6 +31,8 @@ export default function FromTable({
   showModalBanUser
 }) {
   // console.log("data:", data);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(6);
 
   const [sortedData, setSortedData] = useState([]);
 
@@ -45,6 +47,16 @@ export default function FromTable({
       setSortedData(sorted);
     }
   }, [data]);
+
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+
+  const currentPosts = sortedData.slice(indexOfFirstPost, indexOfLastPost);
+  // console.log("currentPosts:", currentPosts);
+
+  // Change page
+  const paginate = pageNumber => setCurrentPage(pageNumber);
+  const totalPages = Math.ceil(data.length / postsPerPage);
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg mb-10">
       <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -74,8 +86,8 @@ export default function FromTable({
         </thead>
 
         <tbody>
-          {sortedData.length > 0 ? (
-            sortedData?.map((el, idx) => (
+          {currentPosts.length > 0 ? (
+            currentPosts?.map((el, idx) => (
               <tr
                 key={idx}
                 className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -110,10 +122,12 @@ export default function FromTable({
                     </Link>
                   )}
                 </th>
-                <td className="px-6 py-4 w-[200px]">
-                  <p className="line-clamp-2">
-                    {el?.title} {el?.firstName} {el?.lastName} {el?.titlePost}
-                  </p>
+                <td className="px-6 py-4">
+                  <div className="w-[200px]">
+                    <p className="line-clamp-1">
+                      {el?.title} {el?.firstName} {el?.lastName} {el?.titlePost}
+                    </p>
+                  </div>
                 </td>
                 <td className="px-6 py-4">
                   {el?.User?.firstName} {el?.User?.lastName} {el?.email}
@@ -152,7 +166,7 @@ export default function FromTable({
                     </div>
                   ) : isCheck ? (
                     <div className="flex justify-center items-center gap-4">
-                      <button
+                      {/* <button
                         onClick={() => {
                           setShowModal(!showModal);
                           userId(el.id);
@@ -160,7 +174,7 @@ export default function FromTable({
                         className="text-2xl hover:text-red-600"
                       >
                         {icon}
-                      </button>
+                      </button> */}
 
                       <button
                         onClick={() => {
@@ -176,7 +190,7 @@ export default function FromTable({
                     </div>
                   ) : (
                     <div className="flex justify-center items-center gap-4">
-                      <button
+                      {/* <button
                         onClick={() => {
                           setShowModal(!showModal);
                           onPostId(el?.id);
@@ -186,7 +200,7 @@ export default function FromTable({
                         className="text-2xl hover:text-red-600"
                       >
                         {icon}
-                      </button>
+                      </button> */}
 
                       <button
                         onClick={() => handleClickLikeButton(el?.id)}
@@ -212,6 +226,70 @@ export default function FromTable({
           )}
         </tbody>
       </table>
+
+      {/* Pagination */}
+
+      <div className="mt-5 mb-5 w-full flex justify-center gap-2 h-12 pr-2 items-center text-text-black-table text-xs font-semibold  bg-white rounded-b-lg ">
+        <nav>
+          <ul className="inline-flex -space-x-px text-base h-10">
+            <li>
+              <a
+                href="#"
+                className={`flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }`}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    paginate(currentPage - 1);
+                  }
+                }}
+              >
+                Previous
+              </a>
+            </li>
+
+            {Array.from(
+              { length: Math.ceil(data.length / postsPerPage) },
+              (_, i) => {
+                return (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className={`flex items-center justify-center px-4 h-10 leading-tight  border 
+            ${
+              currentPage === i + 1
+                ? "bg-blue-200 text-blue-600"
+                : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            }`}
+                      onClick={() => paginate(i + 1)}
+                    >
+                      {i + 1}
+                    </a>
+                  </li>
+                );
+              }
+            )}
+
+            <li>
+              <a
+                href="#"
+                className={`flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border rounded-e-lg border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }`}
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    paginate(currentPage + 1);
+                  }
+                }}
+              >
+                Next
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
   );
 }

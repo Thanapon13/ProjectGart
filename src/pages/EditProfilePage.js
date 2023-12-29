@@ -144,7 +144,7 @@ export default function CreatePostPage() {
                 selectedMenu === "Basicinformation" ? "text-red-500" : ""
               }`}
             >
-              Basic information
+              Basic Information
             </li>
             <li
               onClick={() => handleMenuClick("ChangePassword")}
@@ -162,20 +162,24 @@ export default function CreatePostPage() {
         {selectedMenu === "Basicinformation" && (
           <div className="w-4/5 pl-4 pt-2 flex flex-col gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Basic information</h1>
+              <h1 className="text-2xl font-bold">Basic Information</h1>
             </div>
 
             <div className="flex gap-20">
-              <div className="flex flex-col p-2 gap-2">
-                <Avatar
-                  src={
-                    file
-                      ? URL.createObjectURL(file)
-                      : authenticateUser.profileImage
-                  }
-                  size={"120"}
-                  onClick={() => inputEl.current.click()}
-                />
+              <div className="flex flex-col items-center p-2 gap-2">
+                <div className="w-[150px]">
+                  <img
+                    type="button"
+                    className="w-[140px] h-[140px] rounded-full cursor-pointer"
+                    src={
+                      file
+                        ? URL.createObjectURL(file)
+                        : authenticateUser.profileImage
+                    }
+                    alt="User dropdown"
+                    onClick={() => inputEl.current.click()}
+                  />
+                </div>
                 <button onClick={() => inputEl.current.click()}>
                   <p className="text-blue-600">Upload</p>
 
@@ -248,30 +252,12 @@ export default function CreatePostPage() {
                     />
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="first_name"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      Phone number
-                    </label>
-                    <input
-                      type="text"
-                      name="mobile"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Phone number"
-                      value={input.mobile || authenticateUser.mobile}
-                      onChange={handleChangeInput}
-                      error={error.mobile}
-                    />
-                  </div>
-
                   <button
                     type="button"
                     className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     onClick={handleClickSave}
                   >
-                    confirm
+                    Confirm
                   </button>
                 </div>
               </form>
@@ -282,7 +268,7 @@ export default function CreatePostPage() {
         {selectedMenu !== "Basicinformation" && (
           <div className="w-4/5 pl-4 pt-2 flex flex-col gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Basic information</h1>
+              <h1 className="text-2xl font-bold">Change Password</h1>
             </div>
 
             <div className="flex gap-20">
@@ -324,7 +310,7 @@ export default function CreatePostPage() {
                       type="password"
                       name="newPassword"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Old Password"
+                      placeholder="New Password"
                       value={input.newPassword}
                       onChange={handleChangeInput}
                     />
@@ -347,7 +333,7 @@ export default function CreatePostPage() {
                       type="password"
                       name="confirmPassword"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Old Password"
+                      placeholder="Confirm Password"
                       value={input.confirmPassword}
                       onChange={handleChangeInput}
                     />
@@ -361,10 +347,10 @@ export default function CreatePostPage() {
 
                   <button
                     type="button"
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    className="text-sm text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg  w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     onClick={handleClickUpdatePassword}
                   >
-                    confirm
+                    Confirm
                   </button>
                 </div>
               </form>

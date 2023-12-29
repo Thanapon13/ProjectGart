@@ -189,9 +189,14 @@ export default function ProfilePage() {
             <div
               className={`absolute w-1/4 z-2 -bottom-10 border-2 border-slate-400 bg-white flex flex-col items-center justify-start p-4`}
             >
-              <div>
+              <div className="">
                 {displayedUser ? (
-                  <Avatar src={displayedUser?.profileImage} size="140px" />
+                  <img
+                    type="button"
+                    className="w-[140px] h-[140px] rounded-full cursor-pointer"
+                    src={displayedUser?.profileImage}
+                    alt="User dropdown"
+                  />
                 ) : (
                   <Avatar size="140px" />
                 )}
@@ -263,14 +268,21 @@ export default function ProfilePage() {
               displayedUserPosts?.length === 0 ? "h-[400px] " : null
             }`}
           >
-            <div className="flex justify-center items-center font-bold text-4xl">
+            <div className="flex justify-center items-center font-bold text-2xl">
               <h1>Your Posts: {displayedUserPosts?.length}</h1>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 p-4 mr-6">
               {displayedUserPosts?.map((el, idx) => {
                 const postImage = JSON.parse(el.image);
-                return <CardPost key={idx} el={el} postImage={postImage} />;
+                return (
+                  <CardPost
+                    key={idx}
+                    el={el}
+                    postImage={postImage}
+                    size="500px"
+                  />
+                );
               })}
             </div>
           </div>

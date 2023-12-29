@@ -41,7 +41,7 @@ export default function AdminPage() {
   const { getUsers, setGetUsers, authenticateUser } = useAuth();
   const adminUserId = authenticateUser?.id;
   // console.log("authenticateUser:", authenticateUser);
-  console.log("getUsers:", getUsers);
+  // console.log("getUsers:", getUsers);
 
   const filteredUsers = getUsers.filter(
     user => user.id !== authenticateUser.id
@@ -419,7 +419,7 @@ export default function AdminPage() {
             </button>
           </li>
 
-          <li>
+          {/* <li>
             <button
               onClick={() => {
                 handleMenuClick("history");
@@ -438,7 +438,7 @@ export default function AdminPage() {
                 </p>
               </div>
             </button>
-          </li>
+          </li> */}
         </ul>
       </div>
 

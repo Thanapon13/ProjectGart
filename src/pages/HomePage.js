@@ -6,212 +6,135 @@ import useAuth from "../hooks/useAuth";
 import { BiSolidLike } from "react-icons/bi";
 import { AiOutlineCaretDown, AiOutlineCaretUp } from "react-icons/ai";
 import { FaUser, FaHashtag } from "react-icons/fa";
-
 import ButtonClear from "../components/ButtonClear";
 import useTag from "../hooks/useTag";
 
 export default function HomePage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { postData } = usePost();
   // console.log("postData:", postData);
   const { dataTag } = useTag();
   // console.log("dataTag:", dataTag);
   const { authenticateUser } = useAuth();
-  const [selectedTagId, setSelectedTagId] = useState(null);
-  // console.log("selectedTagId", selectedTagId);
-  const [sortByLikes, setSortByLikes] = useState(false);
-  const [viewMyPosts, setViewMyPosts] = useState(false);
-  // console.log("viewMyPosts:", viewMyPosts);
+  // console.log("authenticateUser:", authenticateUser.id);
+  const [openTag, setOpenTag] = useState(false);
   const [getSearch, setGetSearch] = useState(null);
   // console.log("getSearch:", getSearch);
-  const [searchedPosts, setSearchedPosts] = useState([]);
-  // console.log("searchedPosts:", searchedPosts);
+  const [selectedMenu, setSelectedMenu] = useState("");
+  // console.log("selectedMenu:", selectedMenu);
+  const [selectedTagNameMenu, setSelectedTagNameMenu] = useState("");
+  // console.log("selectedTagNameMenu:", selectedTagNameMenu);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(12);
-  const [openTag, setOpenTag] = useState(false);
-  const [sortByLikesForTag, setSortByLikesForTag] = useState(false);
 
-  const toggleSortByLikes = () => {
-    setSortByLikes(!sortByLikes);
-    setViewMyPosts(false);
-    setSortByLikesForTag(false);
-    setSelectedTagId(null);
-    setSearchedPosts([]);
-    setCurrentPage(1);
+  const handleMenuClick = menu => {
+    setSelectedMenu(
+      (menu === "postMe" && selectedMenu === "postMe") ||
+        (menu === "like" && selectedMenu === "like")
+        ? null
+        : menu
+    );
   };
-
-  const location = useLocation();
 
   useEffect(() => {
     if (location.state) {
-      if (typeof location.state === "string") {
-        setGetSearch(location.state);
-        setSelectedTagId(null);
-      } else if (typeof location.state === "object" && location.state.id) {
-        setGetSearch(location.state.id);
-        setSelectedTagId(null);
-      } else {
-        setSelectedTagId(null);
-        setGetSearch("");
-      }
+      setGetSearch(location.state);
     }
-    filterAndSortPosts();
-  }, [
-    location.state,
-    sortByLikes,
-    viewMyPosts,
-    getSearch,
-    postData,
-    currentPage
-  ]);
+  }, [location.state]);
 
-  const clearSearch = () => {
-    setSelectedTagId(null);
-    setGetSearch(null);
-    setViewMyPosts(null);
-    setSearchedPosts([]);
-    setCurrentPage(1);
-    navigate("/");
-  };
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
 
-  const filterAndSortPosts = () => {
-    const filteredPosts = selectedTagId
-      ? postData.filter(
-          post =>
-            post.Tag &&
-            post.Tag.TagName &&
-            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase()
-        )
-      : viewMyPosts
-      ? postData.filter(post => post.User.id === authenticateUser.id)
-      : postData;
+  const sortedPosts = postData.slice().sort((a, b) => {
+    if (selectedMenu === "like") {
+      const likeComparison = b.Likes.length - a.Likes.length;
 
-    const searchedPosts = getSearch
-      ? filteredPosts.filter(post => {
-          const titleLower = post.title.toLowerCase();
-          const tagNameLower = post.Tag.TagName.toLowerCase();
-          const searchLower = getSearch.toLowerCase();
-          return (
-            titleLower.includes(searchLower) ||
-            tagNameLower.includes(searchLower)
-          );
-        })
-      : filteredPosts;
-
-    const postsWithSelectedTag = selectedTagId
-      ? searchedPosts.filter(
-          post =>
-            post.Tag &&
-            post.Tag.TagName &&
-            post.Tag.TagName.toLowerCase() === selectedTagId.toLowerCase()
-        )
-      : searchedPosts;
-
-    const sortedPosts = [...postsWithSelectedTag].sort((a, b) => {
-      if (sortByLikes || sortByLikesForTag) {
-        return b.Likes.length - a.Likes.length;
-      } else {
-        return b.id - a.id;
-      }
-    });
-
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
-
-    if (indexOfFirstPost >= sortedPosts.length) {
-      setCurrentPage(Math.ceil(sortedPosts.length / postsPerPage));
-      return;
+      // If likes are equal, sort by createdAt in descending order
+      return likeComparison !== 0
+        ? likeComparison
+        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
 
-    const currentPosts = sortedPosts.slice(
-      indexOfFirstPost,
-      Math.min(indexOfLastPost, sortedPosts.length)
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const selectedPostMe = postData
+    ?.filter(
+      el => selectedMenu === "postMe" && el?.User?.id === authenticateUser?.id
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+  // console.log("selectedPostMe:", selectedPostMe);
 
-    setSearchedPosts(currentPosts);
-
-    const stateToPersist = {
-      selectedTagId,
-      sortByLikes,
-      sortByLikesForTag,
-      viewMyPosts,
-      getSearch,
-      currentPage
-    };
-
-    localStorage.setItem("homePageState", JSON.stringify(stateToPersist));
-  };
-
-  useEffect(() => {
-    filterAndSortPosts();
-  }, [
-    selectedTagId,
-    sortByLikes,
-    viewMyPosts,
-    getSearch,
-    postData,
-    currentPage
-  ]);
-
-  useEffect(() => {
-    const persistedState = localStorage.getItem("homePageState");
-
-    if (persistedState) {
-      const parsedState = JSON.parse(persistedState);
-      setSelectedTagId(parsedState.selectedTagId);
-      setSortByLikes(parsedState.sortByLikes);
-      setSortByLikesForTag(parsedState.sortByLikesForTag);
-      setViewMyPosts(parsedState.viewMyPosts);
-      setGetSearch(parsedState.getSearch);
-      setCurrentPage(parsedState.currentPage);
+  const selectedTagName = postData?.filter(el => {
+    if (selectedTagNameMenu === el?.Tag?.TagName) {
+      return true;
+    } else {
+      return false;
     }
-  }, []);
+  });
+  // console.log("selectedTagName:", selectedTagName);
 
+  const currentPosts =
+    selectedMenu === "postMe" && selectedTagNameMenu
+      ? selectedPostMe.filter(post => post.Tag?.TagName === selectedTagNameMenu)
+      : selectedMenu === "postMe"
+      ? selectedPostMe
+      : selectedTagNameMenu
+      ? sortedPosts.filter(post => post.Tag?.TagName === selectedTagNameMenu)
+      : getSearch
+      ? sortedPosts.filter(post =>
+          post.title.toLowerCase().includes(getSearch.toLowerCase())
+        )
+      : sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
+
+  // console.log("currentPosts:", currentPosts);
+
+  // Change page
   const paginate = pageNumber => setCurrentPage(pageNumber);
-
   const totalPages = Math.ceil(postData.length / postsPerPage);
 
-  // console.log(
-  //   "totalPages:",
-  //   `${postData.length} /  ${postsPerPage} = ${postData.length / postsPerPage} `
-  // );
-
-  const handleMenuTagClick = menu => {
-    setSelectedTagId(prevId => (prevId === menu ? null : menu));
-    setViewMyPosts(false);
-    setSortByLikes(false);
-    setSearchedPosts([]);
-    setCurrentPage(1);
-    filterAndSortPosts();
-  };
-
-  const clearAll = () => {
-    setSelectedTagId(null);
+  const clearSearch = () => {
     setGetSearch(null);
-    setViewMyPosts(null);
-    setSortByLikes(false);
-    setSearchedPosts([]);
-    setCurrentPage(1);
+    setSelectedMenu(null);
+    setSelectedTagNameMenu(null);
     navigate("/");
   };
+
+  const clearLike = () => {
+    setSelectedMenu(null);
+    navigate("/");
+  };
+
+  const clearTag = () => {
+    setSelectedTagNameMenu(null);
+    navigate("/");
+  };
+
   return (
     <div className="relative">
       <div className="w-full flex">
-        <div className="w-1/5 px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+        <div className="w-[250px] px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800 flex flex-col gap-4">
+          <div className="border-b-2 p-2">
+            <p className="font-bold text-2xl">Sort</p>
+          </div>
           <ul className="space-y-2 font-medium">
             {authenticateUser ? (
               <li>
                 <button
                   href="#"
                   className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
-                    viewMyPosts ? "bg-gray-300" : null
+                    selectedMenu === "postMe" ? "bg-gray-300" : null
                   }`}
-                  onClick={() => setViewMyPosts(!viewMyPosts)}
+                  onClick={() => handleMenuClick("postMe")}
                 >
                   <i>
                     <FaUser />
                   </i>
-                  <span className="ms-3">Post</span>
+                  <span className="ms-3">My Post</span>
                 </button>
               </li>
             ) : null}
@@ -220,9 +143,9 @@ export default function HomePage() {
               <button
                 href="#"
                 className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
-                  sortByLikes ? "bg-gray-300" : null
+                  selectedMenu === "like" ? "bg-gray-300" : null
                 }`}
-                onClick={toggleSortByLikes}
+                onClick={() => handleMenuClick("like")}
               >
                 <i>
                   <BiSolidLike />
@@ -233,10 +156,12 @@ export default function HomePage() {
 
             <li>
               <button
+                className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
+                  openTag ? "bg-gray-300" : null
+                }`}
                 onClick={() => {
                   setOpenTag(() => !openTag);
                 }}
-                className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group `}
               >
                 <div className="w-full flex items-center justify-between">
                   <p className="flex items-center gap-2">
@@ -252,14 +177,21 @@ export default function HomePage() {
               {openTag && (
                 <>
                   {dataTag?.map((el, idx) => (
-                    <div className="w-full p-2">
+                    <div className="w-full p-2" key={idx}>
                       <button
-                        key={idx}
                         href="#"
-                        onClick={() => handleMenuTagClick(el.TagName)}
                         className={`w-full cursor-pointer rounded-lg flex flex-col hover:bg-gray-200 p-2 ${
-                          selectedTagId === el.TagName ? "bg-gray-300" : null
+                          selectedTagNameMenu === el.TagName
+                            ? "bg-gray-300"
+                            : null
                         } `}
+                        onClick={() =>
+                          setSelectedTagNameMenu(
+                            selectedTagNameMenu === el.TagName
+                              ? null
+                              : el.TagName
+                          )
+                        }
                       >
                         <p className={`text-[14px] $`}>{el.TagName}</p>
                       </button>
@@ -274,47 +206,49 @@ export default function HomePage() {
         <div className="w-full">
           <div className="flex">
             <div className="p-2">
-              {sortByLikes && (
-                <ButtonClear onClick={toggleSortByLikes} title="Like" />
-              )}
-            </div>
-
-            <div className="p-2">
               {getSearch && (
                 <ButtonClear onClick={clearSearch} getSearch={getSearch} />
               )}
             </div>
 
-            <div className="p-2">
-              {viewMyPosts && (
-                <ButtonClear onClick={clearSearch} getSearch="Posts" />
-              )}
-            </div>
-            <div className="p-2">
-              {selectedTagId && (
-                <ButtonClear onClick={clearSearch} getSearch={selectedTagId} />
+            <div className="mt-4">
+              {selectedMenu === "like" && (
+                <ButtonClear onClick={clearLike} title="Like" />
               )}
             </div>
 
-            {viewMyPosts || getSearch || sortByLikes ? (
-              <div className="p-2">
-                <ButtonClear onClick={clearAll} title="Clear All" />
-              </div>
-            ) : null}
+            <div className="mt-4">
+              {selectedMenu === "postMe" && (
+                <ButtonClear
+                  onClick={clearSearch}
+                  title={`My Posts have : ${selectedPostMe.length} `}
+                />
+              )}
+            </div>
+
+            <div className="mt-4">
+              {selectedTagNameMenu && (
+                <ButtonClear
+                  onClick={clearTag}
+                  getSearch={`Tag ${selectedTagNameMenu} : ${selectedTagName.length} `}
+                />
+              )}
+            </div>
           </div>
 
           <div className="w-full flex flex-col justify-center items-center">
             <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 p-4 z-0">
-              {searchedPosts?.length > 0 ? (
-                searchedPosts?.map((el, idx) => <CardPost key={idx} el={el} />)
+              {currentPosts?.length > 0 ? (
+                currentPosts.map((el, idx) => <CardPost key={idx} el={el} />)
               ) : (
                 <p className="flex items-start justify-center h-screen text-center text-gray-600 dark:text-gray-300 mt-4">
-                  No results found for "{`${getSearch || "Post"}`}".
+                  No results found for "{`${"Post"}`}".
                 </p>
               )}
             </div>
+
             {/* Pagination */}
-            <div className="w-full flex justify-center gap-2 h-12 pr-2 items-center text-text-black-table text-xs font-semibold  bg-white rounded-b-lg border-b-[1px] border-border-gray-table">
+            <div className="w-full flex justify-center gap-2 h-12 pr-2 items-center text-text-black-table text-xs font-semibold  bg-white rounded-b-lg mb-4">
               <nav>
                 <ul className="inline-flex -space-x-px text-base h-10">
                   <li>
@@ -335,21 +269,27 @@ export default function HomePage() {
                     </a>
                   </li>
 
-                  {Array.from({ length: totalPages }).map((_, index) => (
-                    <li key={index}>
-                      <a
-                        href="#"
-                        className={`flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border ${
-                          currentPage === index + 1
-                            ? "bg-blue-200 text-blue-600"
-                            : "border-gray-300 "
-                        } hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
-                        onClick={() => paginate(index + 1)}
-                      >
-                        {index + 1}
-                      </a>
-                    </li>
-                  ))}
+                  {Array.from(
+                    { length: Math.ceil(postData.length / postsPerPage) },
+                    (_, i) => {
+                      return (
+                        <li key={i}>
+                          <a
+                            href="#"
+                            className={`flex items-center justify-center px-4 h-10 leading-tight  border 
+            ${
+              currentPage === i + 1
+                ? "bg-blue-200 text-blue-600"
+                : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            }`}
+                            onClick={() => paginate(i + 1)}
+                          >
+                            {i + 1}
+                          </a>
+                        </li>
+                      );
+                    }
+                  )}
 
                   <li>
                     <a

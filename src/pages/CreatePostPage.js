@@ -67,8 +67,8 @@ export default function CreatePostPage() {
           progress: undefined,
           theme: "light"
         });
-      } else if (fileList[i].size > 2000000) {
-        toast.warn(`${fileList[i].name} has more than 2mb!`, {
+      } else if (fileList[i].size > 20000000) {
+        toast.warn(`${fileList[i].name} has more than 20mb!`, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -270,27 +270,29 @@ export default function CreatePostPage() {
             <div className="w-[500px] col-span-2 sm:mt-2">
               <div className="">
                 {arrayImage.map((image, idx) => (
-                  <div
-                    className="flex items-start justify-center gap-2"
-                    key={idx}
-                  >
-                    <div className="flex justify-start items-start">
-                      <img
-                        src={arrayImageURL[idx]}
-                        crossOrigin="true"
-                        className=" object-cover"
-                      />
-                    </div>
+                  <>
+                    <div
+                      className="flex items-start justify-center gap-2"
+                      key={idx}
+                    >
+                      <div className="flex justify-start items-start">
+                        <img
+                          src={arrayImageURL[idx]}
+                          crossOrigin="true"
+                          className=" object-cover"
+                        />
+                      </div>
 
-                    <div>
-                      <button
-                        onClick={() => deleteImg(idx)}
-                        className="hover:text-red-600"
-                      >
-                        <AiOutlineDelete className="text-2xl" />
-                      </button>
+                      <div>
+                        <button
+                          onClick={() => deleteImg(idx)}
+                          className="hover:text-red-600"
+                        >
+                          <AiOutlineDelete className="text-2xl" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 ))}
               </div>
             </div>
@@ -327,8 +329,9 @@ export default function CreatePostPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-text-gray text-sm">
-                  Can upload no more than (0/1)
+                <div className="text-text-gray text-sm flex flex-col items-center justify-center">
+                  <p>Can upload no more than (0/1)</p>
+                  <p>Upload size no more than 20 mb (JPEG , PNG)</p>
                 </div>
               )}
             </div>
@@ -357,23 +360,6 @@ export default function CreatePostPage() {
 
         {showModalSuccess && <ModalSuccess urlPath="/" />}
       </div>
-
-      {/* <FromCreatePost
-        header="Create Post"
-        error={error}
-        handleChangeInput={handleChangeInput}
-        input={input}
-        dataTag={dataTag}
-        arrayImage={arrayImage}
-        arrayImageURL={arrayImageURL}
-        deleteImg={deleteImg}
-        inputImg={inputImg}
-        FromCreatePost={FromCreatePost}
-        handleImageChange={handleImageChange}
-        handleSubmitForm={handleSubmitForm}
-        handleCancel={handleCancel}
-        showModalSuccess={showModalSuccess}
-      /> */}
     </div>
   );
 }
