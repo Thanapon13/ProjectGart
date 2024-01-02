@@ -23,3 +23,6 @@ export const deleteCommentId = input =>
   axios.delete(`/post/${input.id}/comments`, {
     params: { userId: input.userId }
   });
+
+export const adminDeleteCommentId = input =>
+  axios.delete(`/admin/comments/`, { data: input });

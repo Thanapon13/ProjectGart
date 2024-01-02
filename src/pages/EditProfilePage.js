@@ -9,8 +9,10 @@ import { useNavigate } from "react-router-dom";
 import validateUpdatePassword from "../validators/validate-updatePassword";
 
 export default function CreatePostPage() {
-  const { authenticateUser, userUpdateProfile, logout } = useAuth();
+  const { authenticateUser, userUpdateProfile, logout, setAuthenticatedUser } =
+    useAuth();
   // console.log("authenticateUser:", authenticateUser);
+
   const { startLoading, stopLoading } = useLoading();
   const inputEl = useRef();
   const navigate = useNavigate();
@@ -27,16 +29,25 @@ export default function CreatePostPage() {
   const [input, setInput] = useState({
     firstName: "",
     lastName: "",
-    email: "",
-    mobile: "",
+    email: ""
+  });
+  // console.log("input:", input);
+
+  const handleChangeInput = e => {
+    setInput({ ...input, [e.target.name]: e.target.value });
+  };
+  const [inputChangePassword, setInputChangePassword] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-  console.log("inputData:", input);
+  // console.log("inputChangePassword:", inputChangePassword);
 
-  const handleChangeInput = e => {
-    setInput({ ...input, [e.target.name]: e.target.value });
+  const handleChangeInputChangePassword = e => {
+    setInputChangePassword({
+      ...inputChangePassword,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleMenuClick = menu => {
@@ -46,46 +57,54 @@ export default function CreatePostPage() {
 
   const handleClickSave = async () => {
     try {
-      startLoading();
-      const result = validateEditProfile(input);
-      console.log(result, "result------------------------");
+      const result = validateEditProfile({
+        ...input,
+        firstName: input.firstName || authenticateUser?.firstName,
+        lastName: input.lastName || authenticateUser?.lastName,
+        email: input.email || authenticateUser?.email
+      });
+
+      // console.log("result:", result);
       if (result) {
         setError(result);
       } else {
-        console.log("no error");
         setError({});
-      }
+        startLoading();
+        const formData = new FormData();
 
-      const formData = new FormData();
+        if (file) {
+          formData.append("profileImage", file, file.name);
+        } else {
+          const imageUrl = authenticateUser.profileImage;
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const profileImageFile = new File([blob], "existingImage.png");
+          formData.append("profileImage", profileImageFile);
+        }
 
-      if (file) {
-        formData.append("profileImage", file, file.name);
-      } else {
-        const imageUrl = authenticateUser.profileImage;
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const profileImageFile = new File([blob], "existingImage.png");
-        formData.append("profileImage", profileImageFile);
-      }
+        const updateProfileResponse = await userUpdateProfile(formData);
 
-      const updateProfileResponse = await userUpdateProfile(formData);
-
-      if (updateProfileResponse.status === 200) {
-        // Profile update was successful
-        await userApi.updateUserInfo({
-          ...input,
-          firstName: input.firstName || authenticateUser.firstName,
-          lastName: input.lastName || authenticateUser.lastName,
-          email: input.email || authenticateUser.email,
-          mobile: input.mobile || authenticateUser.mobile
-        });
-
-        toast.success("Successfully updated!");
-        stopLoading();
-        setFile(null);
-      } else {
-        console.error("Failed to update profile");
-        toast.error("Failed to update");
+        if (updateProfileResponse.status === 200) {
+          // Profile update was successful
+          await userApi.updateUserInfo({
+            ...input,
+            firstName: input.firstName || authenticateUser.firstName,
+            lastName: input.lastName || authenticateUser.lastName,
+            email: input.email || authenticateUser.email
+          });
+          setAuthenticatedUser({
+            ...authenticateUser,
+            firstName: input.firstName || authenticateUser.firstName,
+            lastName: input.lastName || authenticateUser.lastName,
+            email: input.email || authenticateUser.email
+          });
+          toast.success("Successfully updated!");
+          stopLoading();
+          setFile(null);
+        } else {
+          console.error("Failed to update profile");
+          toast.error("Failed to update");
+        }
       }
     } catch (err) {
       console.log(err.response?.data.message);
@@ -94,35 +113,44 @@ export default function CreatePostPage() {
   };
 
   const handleClickUpdatePassword = async () => {
+    startLoading();
+
     try {
-      const result = validateUpdatePassword(input);
-      console.log(result, "result------------------------");
+      const result = validateUpdatePassword({
+        newPassword: inputChangePassword.newPassword,
+        confirmPassword: inputChangePassword.confirmPassword
+      });
+
+      // console.log("result:", result);
       if (result) {
         setError(result);
       } else {
-        console.log("no error");
         setError({});
       }
-      // startLoading();
+
       await userApi.updateUserInfoPassword({
-        ...input,
-        oldPassword: input.oldPassword,
-        newPassword: input.newPassword,
-        confirmPassword: input.confirmPassword
+        ...inputChangePassword,
+        oldPassword: inputChangePassword.oldPassword,
+        newPassword: inputChangePassword.newPassword,
+        confirmPassword: inputChangePassword.confirmPassword
       });
 
-      toast.success("successfully updated!");
-      // stopLoading();
+      toast.success("Successfully updated!");
+
       logout();
       navigate("/");
     } catch (err) {
+      console.log("err:", err);
+      console.log("err.response :", err.response);
+
       if (err.response && err.response.status === 401) {
-        setError({ oldPassword: "Invalid old password" });
-        // setError({});
+        setError({ oldPassword: err?.response?.data?.message });
       } else {
         console.log(err.response?.data.message);
         toast.error("Failed to update");
       }
+    } finally {
+      stopLoading();
     }
   };
 
@@ -208,12 +236,21 @@ export default function CreatePostPage() {
                     <input
                       type="text"
                       name="firstName"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className={`bg-gray-50 ${
+                        error.firstName
+                          ? "border border-red-600"
+                          : "border border-gray-300 "
+                      }  text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                       placeholder="First name"
                       value={input.firstName || authenticateUser.firstName}
                       onChange={handleChangeInput}
                       error={error.firstName}
                     />
+                    {error.firstName && (
+                      <div className="text-red-600 text-sm">
+                        {error.firstName}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -226,12 +263,21 @@ export default function CreatePostPage() {
                     <input
                       type="text"
                       name="lastName"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className={`bg-gray-50 ${
+                        error.lastName
+                          ? "border border-red-600"
+                          : "border border-gray-300 "
+                      }  text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                       placeholder="Last name"
                       value={input.lastName || authenticateUser.lastName}
                       onChange={handleChangeInput}
                       error={error.lastName}
                     />
+                    {error.lastName && (
+                      <div className="text-red-600 text-sm">
+                        {error.lastName}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -244,12 +290,19 @@ export default function CreatePostPage() {
                     <input
                       type="text"
                       name="email"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className={`bg-gray-50 ${
+                        error.email
+                          ? "border border-red-600"
+                          : "border border-gray-300 "
+                      }  text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                       placeholder="email"
                       value={input.email || authenticateUser.email}
                       onChange={handleChangeInput}
                       error={error.email}
                     />
+                    {error.email && (
+                      <div className="text-red-600 text-sm">{error.email}</div>
+                    )}
                   </div>
 
                   <button
@@ -286,15 +339,13 @@ export default function CreatePostPage() {
                       type="password"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       placeholder="Old Password"
-                      value={input.oldPassword}
-                      onChange={handleChangeInput}
+                      value={inputChangePassword.oldPassword}
+                      onChange={handleChangeInputChangePassword}
                     />
 
                     {error.oldPassword && (
                       <div>
-                        <p className="text-red-500">
-                          You entered an incorrect password.
-                        </p>
+                        <p className="text-red-500">{error.oldPassword}</p>
                       </div>
                     )}
                   </div>
@@ -311,8 +362,8 @@ export default function CreatePostPage() {
                       name="newPassword"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       placeholder="New Password"
-                      value={input.newPassword}
-                      onChange={handleChangeInput}
+                      value={inputChangePassword.newPassword}
+                      onChange={handleChangeInputChangePassword}
                     />
 
                     {error.newPassword && (
@@ -334,8 +385,8 @@ export default function CreatePostPage() {
                       name="confirmPassword"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       placeholder="Confirm Password"
-                      value={input.confirmPassword}
-                      onChange={handleChangeInput}
+                      value={inputChangePassword.confirmPassword}
+                      onChange={handleChangeInputChangePassword}
                     />
 
                     {error.confirmPassword && (

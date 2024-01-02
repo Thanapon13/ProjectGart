@@ -50,7 +50,7 @@ export default function CreatePostPage() {
 
   const handleImageChange = e => {
     const fileList = e.target.files;
-    console.log("fileList:", fileList);
+    // console.log("fileList:", fileList);
 
     const cloneFile = [...arrayImage];
     // console.log("cloneFile:", cloneFile);
@@ -127,7 +127,7 @@ export default function CreatePostPage() {
   const handleSubmitForm = async () => {
     try {
       const result = validateCreatePost(input);
-      console.log("result:", result);
+      // console.log("result:", result);
 
       if (result) {
         setError(result);
@@ -209,7 +209,7 @@ export default function CreatePostPage() {
                 value={input.title}
                 placeholder="Enter no more than 255 characters"
               />
-              {error && (
+              {error.title && (
                 <div className="text-red-600 text-sm">{error.title}</div>
               )}
             </div>

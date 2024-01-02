@@ -21,7 +21,6 @@ import { FaCommentAlt } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
 import ModalConfirmSave from "../components/modal/ModalConfirmSave";
 import PostAction from "../feature/postDetailPage.js/PostAction";
-import CardPost from "../components/CardPost";
 import useTag from "../hooks/useTag";
 import useLoading from "../hooks/useLoading";
 import { toast } from "react-toastify";
@@ -586,7 +585,7 @@ export default function PostDetailPage() {
                           className="w-[250px] text-white bg-green-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
                           onClick={handleClickReject}
                         >
-                          ติดตามแล้ว
+                          Following
                         </button>
                       ) : (
                         <button
@@ -594,7 +593,7 @@ export default function PostDetailPage() {
                           className="w-[250px] text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
                           onClick={handleClickFollow}
                         >
-                          ติดตาม
+                          Follow
                         </button>
                       )
                     ) : (
@@ -603,7 +602,7 @@ export default function PostDetailPage() {
                         className="w-[250px] text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-full text-sm p-2 text-center me-2 mb-2 "
                         onClick={handleClickFollow}
                       >
-                        ติดตาม
+                        Follow
                       </button>
                     )}
                   </div>
@@ -827,8 +826,8 @@ export default function PostDetailPage() {
               isVisible={showModalDeleteComment}
               onClose={() => setShowModalDeleteComment(false)}
               onSave={handleClickDeleteComment}
-              header="ลบคอมเมนต์"
-              text='คุณต้องการ "ลบคอมเมนต์" หรือไม่'
+              header="Delete Comment"
+              text='Do you want to "Delete Comment" ?'
             />
           )}
 

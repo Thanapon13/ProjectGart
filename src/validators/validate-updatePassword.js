@@ -7,7 +7,7 @@ const updatePassword = Joi.object({
     "string.min": "password must have at least 6 characters"
   }),
   confirmPassword: Joi.string()
-    .valid(Joi.ref("password"))
+    .valid(Joi.ref("newPassword"))
     .required()
     .trim()
     .messages({

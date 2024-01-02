@@ -9,16 +9,10 @@ import { useRef, useState } from "react";
 import { useEffect } from "react";
 import { updateStatusShowUser } from "../apis/admin-api";
 import { formatTime } from "../utils/formatTime ";
-import { getUserInfoById } from "../apis/user-api";
 
 export default function DropdownProfile() {
-  const { logout, authenticateUser, setAuthenticatedUser, getUsers } =
-    useAuth();
+  const { logout, authenticateUser, setAuthenticatedUser } = useAuth();
   // console.log("authenticateUser:", authenticateUser);
-  // console.log("getUsers:", getUsers);
-
-  const [getUserData, setGetUserData] = useState([]);
-  // console.log("getUserData:", getUserData);
 
   const navigate = useNavigate();
 
@@ -33,31 +27,6 @@ export default function DropdownProfile() {
       setOpen(false);
     }
   });
-
-  useEffect(() => {
-    const fetchUserInfoById = async () => {
-      try {
-        let userIdToFetch;
-
-        if (authenticateUser && authenticateUser.id) {
-          userIdToFetch = authenticateUser.id;
-        } else {
-          console.error(
-            "Neither selectedProfileId nor authenticateUser is available"
-          );
-          return;
-        }
-        // console.log("userIdToFetch:", userIdToFetch);
-        const res = await getUserInfoById(userIdToFetch);
-        // Update getUserData based on the response
-        setGetUserData(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchUserInfoById();
-  }, [authenticateUser]);
 
   useEffect(() => {
     let timer;

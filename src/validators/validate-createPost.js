@@ -1,12 +1,15 @@
 import Joi from "joi";
 
 const createPostSchema = Joi.object({
-  title: Joi.string().trim().required().messages({
-    "string.empty": "post name is required"
+  title: Joi.string().trim().max(255).required().messages({
+    "string.empty": "post name is required",
+    "string.max": "Post titles must be no more than 255 characters long"
   }),
-  description: Joi.string().trim().required().messages({
-    "string.empty": "description is required"
+  description: Joi.string().trim().max(255).required().messages({
+    "string.empty": "description is required",
+    "string.max": "Description Post must be no more than 255 characters long"
   }),
+
   tagId: Joi.string().required().messages({
     "string.empty": "tag name is required"
   }),

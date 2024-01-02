@@ -1,6 +1,6 @@
 import { RiDeleteBin5Fill } from "react-icons/ri";
 import { BsFillFilePostFill } from "react-icons/bs";
-import { FaRegUser, FaHistory } from "react-icons/fa";
+import { FaRegUser, FaHistory, FaRegCommentAlt } from "react-icons/fa";
 import { AiOutlineCaretDown, AiOutlineCaretUp } from "react-icons/ai";
 import usePost from "../hooks/usePost";
 import ModalConfirmSave from "../components/modal/ModalConfirmSave";
@@ -29,6 +29,7 @@ import FromCreateTag from "../feature/admin/FromCreateTag";
 import FromTagData from "../feature/admin/FromTagData";
 import { useNavigate } from "react-router-dom";
 import axios from "../config/axios";
+import FromTableComment from "../feature/admin/FromTableComment";
 
 export default function AdminPage() {
   const inputImg = useRef();
@@ -51,8 +52,10 @@ export default function AdminPage() {
   const { dataTag, setDataTag } = useTag();
   // console.log("dataTag:", dataTag);
 
-  const { restoredData, setRestoredData } = useAdmin();
+  const { restoredData, setRestoredData, commentData, setCommentData } =
+    useAdmin();
   // console.log("restoredData:", restoredData);
+  // console.log("commentData:", commentData);
 
   const { startLoading, stopLoading } = useLoading();
 
@@ -397,6 +400,19 @@ export default function AdminPage() {
             <button
               href="#"
               className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
+                selectedMenu === "comment" ? "bg-gray-300" : null
+              }`}
+              onClick={() => handleMenuClick("comment")}
+            >
+              <FaRegCommentAlt />
+              <span className="ms-3">Comment</span>
+            </button>
+          </li>
+
+          <li>
+            <button
+              href="#"
+              className={`w-full flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group ${
                 selectedMenu === "user" ? "bg-gray-300" : null
               }`}
               onClick={() => handleMenuClick("user")}
@@ -463,6 +479,20 @@ export default function AdminPage() {
             onTagId={setTagIdToDelete}
             icon={icon}
             handleClickLikeButton={handleClickLikeButton}
+          />
+        </div>
+      )}
+
+      {/* Comment  */}
+      {selectedMenu === "comment" && (
+        <div className="w-full flex flex-col gap-4 p-4">
+          <div className="flex justify-center items-center font-bold text-2xl">
+            <h1>List Comments : {commentData.length}</h1>
+          </div>
+
+          <FromTableComment
+            data={commentData}
+            setCommentData={setCommentData}
           />
         </div>
       )}

@@ -4,15 +4,15 @@ export const formatTime = countdown => {
   const seconds = countdown % 60; // Calculate remaining seconds
 
   if (hours > 0) {
-    return `${String(hours).padStart(2, "0")} ชั่วโมง ${String(
-      minutes
-    ).padStart(2, "0")} นาที ${String(seconds).padStart(2, "0")} วินาที`;
-  } else if (minutes > 0) {
-    return `${String(minutes).padStart(2, "0")} นาที ${String(seconds).padStart(
+    return `${String(hours).padStart(2, "0")} hour ${String(minutes).padStart(
       2,
       "0"
-    )} วินาที`;
+    )} นาที ${String(seconds).padStart(2, "0")} second`;
+  } else if (minutes > 0) {
+    return `${String(minutes).padStart(2, "0")} minute ${String(
+      seconds
+    ).padStart(2, "0")} second`;
   } else {
-    return `${String(seconds).padStart(2, "0")} วินาที`;
+    return `${String(seconds).padStart(2, "0")} second`;
   }
 };
