@@ -379,11 +379,16 @@ export default function ProfilePage() {
           onClose={() => setOpenFollowing(false)}
         >
           {getUsers.map((user, index) => {
+            // console.log("user:", user);
             const isFollowing = getUserData?.userFollows?.some(
               followData =>
                 authenticateUser.id === followData.requesterId &&
                 followData.accepterId === user.id
             );
+
+            if (user.isAdmin === true) {
+              return null;
+            }
 
             const shouldDisplayUser =
               selectedProfileId &&

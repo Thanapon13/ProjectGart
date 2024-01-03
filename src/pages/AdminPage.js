@@ -15,7 +15,8 @@ import {
   restoredPost,
   updateStatusPostHidePost,
   updateStatusPostShowPost,
-  updateStatusBanUser
+  updateStatusBanUser,
+  unbannedUser
 } from "../apis/admin-api";
 import { createTage } from "../apis/tag-api";
 import FromTable from "../components/FromTable";
@@ -30,6 +31,7 @@ import FromTagData from "../feature/admin/FromTagData";
 import { useNavigate } from "react-router-dom";
 import axios from "../config/axios";
 import FromTableComment from "../feature/admin/FromTableComment";
+import Layout from "../layouts/layout";
 
 export default function AdminPage() {
   const inputImg = useRef();
@@ -39,7 +41,8 @@ export default function AdminPage() {
   const { postData, setPostData } = usePost();
   // console.log("postData:", postData);
 
-  const { getUsers, setGetUsers, authenticateUser } = useAuth();
+  const { getUsers, setGetUsers, authenticateUser, setAuthenticatedUser } =
+    useAuth();
   const adminUserId = authenticateUser?.id;
   // console.log("authenticateUser:", authenticateUser);
   // console.log("getUsers:", getUsers);
@@ -67,12 +70,16 @@ export default function AdminPage() {
 
   const [showModalDeletePost, setShowModalDeletePost] = useState(false);
   const [showModalBanUser, setShowModalBanUser] = useState(false);
+  const [showModalUnbanned, setShowModalUnbanned] = useState(false);
   const [showModalDeleteUser, setShowModalDeleteUser] = useState(false);
   const [showModalSuccess, setShowModalSuccess] = useState(false);
   const [postDeleteSuccess, setPostDeleteSuccess] = useState(false);
   const [userDeleteSuccess, setUserDeleteSuccess] = useState(false);
   const [showModalDeleteTag, setShowModalDeleteTag] = useState(false);
   const [showModalRestoredPost, setShowModalRestoredPost] = useState(false);
+
+  const [userToUpdate, setUserToUpdate] = useState([]);
+
   const [openTag, setOpenTag] = useState(false);
   const [
     showModalDeleteRestoredPosSuccess,
@@ -322,7 +329,31 @@ export default function AdminPage() {
         adminUserId
       );
 
-      console.log("response:", response.data.userData);
+      // console.log("response:", response.data.userData);
+
+      const updatedUsers = response.data.userData;
+      const userToUpdate = updatedUsers.find(user => user.id === userId);
+      // console.log("userToUpdate:", userToUpdate);
+
+      setGetUsers(updatedUsers);
+      // setAuthenticatedUser(userToUpdate);
+      setUserToUpdate(userToUpdate);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleClickUnbannedUser = async () => {
+    try {
+      let value = {
+        status: "SHOWUSER",
+        userId: userId
+      };
+
+      console.log("value:", value);
+      const response = await unbannedUser(value);
+
+      console.log("response:", response.data);
 
       const updatedUsers = response.data.userData;
 
@@ -516,6 +547,8 @@ export default function AdminPage() {
             setShowModal={setShowModalDeleteUser}
             setShowModalBanUser={setShowModalBanUser}
             showModalBanUser={showModalBanUser}
+            setShowModalUnbanned={setShowModalUnbanned}
+            showModalUnbanned={showModalUnbanned}
           />
         </div>
       )}
@@ -587,6 +620,15 @@ export default function AdminPage() {
           onSave={handleClickBanUser}
           header="Ban User"
           text='Do you want to "Ban User"?'
+        />
+      )}
+      {showModalUnbanned && (
+        <ModalConfirmSave
+          isVisible={showModalUnbanned}
+          onClose={() => setShowModalUnbanned(false)}
+          onSave={handleClickUnbannedUser}
+          header="Unbanned User"
+          text='Do you want to "Unbanned User"?'
         />
       )}
 

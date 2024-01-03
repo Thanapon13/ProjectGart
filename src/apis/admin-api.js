@@ -51,4 +51,7 @@ export const updateStatusShowUser = (userId, countdown) => {
   return axios.post(`/admin/user/updateStatusShowUser/${userId}/${countdown}`);
 };
 
+export const unbannedUser = input =>
+  axios.post("/admin/user/unbannedUser", input);
+
 export const getComment = () => axios.get("/admin/getComment");

@@ -28,9 +28,11 @@ export default function FromTable({
   status,
   handleClickLikeButton,
   setShowModalBanUser,
-  showModalBanUser
+  showModalBanUser,
+  setShowModalUnbanned,
+  showModalUnbanned
 }) {
-  // console.log("data:", data);
+  // console.log("data----", data);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
 
@@ -175,18 +177,28 @@ export default function FromTable({
                       >
                         {icon}
                       </button> */}
-
-                      <button
-                        onClick={() => {
-                          setShowModalBanUser(!showModalBanUser);
-                          userId(el.id);
-                        }}
-                        className={`text-2xl hover:text-red-600 ${
-                          el.status === "BANUSER" ? "text-red-600" : null
-                        } `}
-                      >
-                        <FaBan />
-                      </button>
+                      {el?.status === "BANUSER" ? (
+                        <button
+                          type="button"
+                          className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                          onClick={() => {
+                            setShowModalUnbanned(!showModalUnbanned);
+                            userId(el.id);
+                          }}
+                        >
+                          Unbanned
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setShowModalBanUser(!showModalBanUser);
+                            userId(el.id);
+                          }}
+                          className="text-2xl hover:text-red-600"
+                        >
+                          <FaBan />
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="flex justify-center items-center gap-4">
