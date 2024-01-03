@@ -12,7 +12,7 @@ import { formatTime } from "../utils/formatTime ";
 
 export default function DropdownProfile() {
   const { logout, authenticateUser, setAuthenticatedUser } = useAuth();
-  // console.log("authenticateUser:", authenticateUser);
+  console.log("authenticateUser---", authenticateUser);
 
   const navigate = useNavigate();
 

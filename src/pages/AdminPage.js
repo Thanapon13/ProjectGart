@@ -337,7 +337,7 @@ export default function AdminPage() {
 
       setGetUsers(updatedUsers);
       // setAuthenticatedUser(userToUpdate);
-      setUserToUpdate(userToUpdate);
+      // setUserToUpdate(userToUpdate);
     } catch (err) {
       console.log(err);
     }
